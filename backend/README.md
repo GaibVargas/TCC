@@ -1,4 +1,4 @@
-# Project Dependencies
+# Dependencies
 - Node.js v22 or superior
 - npm v10 or superior
 
