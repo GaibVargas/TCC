@@ -7,15 +7,15 @@
 
 ### Development
 
-```
-  npm install
+```bash
+npm install
 ```
 
 By default the backend of the project is available at http://localhost:3000
 
 ### Production
 
-```
-  npm run build
-  npm run start
+```bash
+npm run build
+npm run start
 ```
