@@ -1,4 +1,4 @@
-import { User } from '../user/type'
+import { User } from '../entities/user/type'
 
 export interface LTIServices {
   startLaunch(): Promise<string>

@@ -1,4 +1,4 @@
-import { stubUser, User } from '../../user/type'
+import { stubUser, User } from '../../entities/user/type'
 import { LTIServices } from '../services'
 
 export class MoodleLTIServices implements LTIServices {
