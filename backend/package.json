@@ -14,8 +14,11 @@
   "description": "",
   "dependencies": {
     "@fastify/formbody": "^8.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-client": "^2.0.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
