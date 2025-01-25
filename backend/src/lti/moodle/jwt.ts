@@ -9,27 +9,55 @@ import {
 } from 'jsonwebtoken'
 import jwksClient from 'jwks-client'
 import moodleUris from './links'
+import { resolve } from 'node:path'
 
 type JWTMessage = string | Buffer | object
 
 export async function signMessage(message: JWTMessage): Promise<string> {
-  const privateKey = await fs.promises.readFile('private_key.pem', 'utf8')
+  const privateKeyFilepath = resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'keys',
+    'private_key.pem',
+  )
+  const privateKey = await fs.promises.readFile(privateKeyFilepath, 'utf8')
   return sign(message, privateKey, {
     algorithm: 'RS256',
     expiresIn: '5m',
   })
 }
 
+export async function verifyMessage(message: string): Promise<string | JwtPayload> {
+  const publicKeyFilepath = resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'keys',
+    'public_key.pem',
+  )
+  const publicKey = await fs.promises.readFile(publicKeyFilepath, 'utf8')
+
+  const decoded = verify(message, publicKey, {
+    algorithms: ['RS256'],
+  })
+
+  return decoded
+}
+
 type JWTVerifyResult = string | JwtPayload | undefined
 
-export async function verifyMessage(
+export async function verifyMessageOnISS(
   message: string,
+  iss: string,
 ): Promise<JWTVerifyResult> {
   try {
     const decodedMsg = await new Promise<JWTVerifyResult>((resolve, reject) => {
       verify(
         message,
-        getISSJWKSKey('a'),
+        getISSJWKSKey(iss),
         { algorithms: ['RS256'] },
         (err, decoded) => {
           if (err) reject(err)

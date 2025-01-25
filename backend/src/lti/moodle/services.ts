@@ -1,8 +1,14 @@
+import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
-import { stubUser, User } from '../../entities/user/type'
+import { User } from '../../entities/user/type'
 import { LTIServices } from '../services'
+import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
+import moodleUris from './links'
+import { redirect_url } from '../constants'
+import { MoodleUser } from './types'
+import { getUserRole } from '../../entities/user/services'
 
-export const startPayloadSchema = z.object({
+export const startLauchPayloadSchema = z.object({
   iss: z.string(),
   target_link_uri: z.string().url(),
   login_hint: z.string(),
@@ -11,18 +17,71 @@ export const startPayloadSchema = z.object({
   lti_deployment_id: z.string(),
 })
 
-export type StartLaunchPayload = z.infer<typeof startPayloadSchema>
+export type StartLaunchPayload = z.infer<typeof startLauchPayloadSchema>
 
-export class MoodleLTIServices implements LTIServices<StartLaunchPayload> {
+export const getUserPayloadSchema = z.object({
+  id_token: z.string(),
+  state: z.string(),
+})
+
+export type GetUserPayload = z.infer<typeof getUserPayloadSchema>
+
+export class MoodleLTIServices implements LTIServices {
   async startLaunch(
-    payload: StartLaunchPayload,
+    payload: unknown,
   ): Promise<string> {
-    console.log(payload)
-    return await new Promise((resolve) => resolve(payload.target_link_uri))
+    const parsedPayload = startLauchPayloadSchema.parse(payload)
+    const { iss, target_link_uri, login_hint, lti_message_hint, client_id, lti_deployment_id } = parsedPayload
+    const state = await signMessage({
+      iss,
+      target_link_uri,
+      login_hint,
+      lti_message_hint,
+      client_id,
+      lti_deployment_id
+    })
+    const moodleOidcUrl = moodleUris(iss).auth
+    const nonce = randomBytes(16).toString('hex')
+    const redirectUrl =
+      `${moodleOidcUrl}?` +
+      `client_id=${encodeURIComponent(client_id)}&` +
+      `redirect_uri=${encodeURIComponent(redirect_url)}&` +
+      `response_type=id_token&` +
+      `scope=openid&` + 
+      `state=${encodeURIComponent(state)}&` +
+      `login_hint=${encodeURIComponent(login_hint)}&` +
+      `lti_message_hint=${encodeURIComponent(lti_message_hint)}&` +
+      `nonce=${encodeURIComponent(nonce)}&` +
+      `response_mode=form_post`
+
+    return redirectUrl
   }
 
-  async getUser(): Promise<User> {
-    return await new Promise((resolve) => resolve(stubUser))
+  private formatUser(moodleUser: MoodleUser): User {
+    return {
+      id: moodleUser.sub,
+      name: moodleUser.name,
+      locale: moodleUser['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].locale,
+      role: getUserRole(moodleUser['https://purl.imsglobal.org/spec/lti/claim/roles']),
+      lms: {
+        iss: moodleUser.iss,
+        platform: 'moodle',
+        client_id: moodleUser.aud,
+        version: moodleUser['https://purl.imsglobal.org/spec/lti/claim/version'],
+        user_id: moodleUser.sub,
+        outcome: {
+          source_id: moodleUser['https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'].lis_result_sourcedid,
+          service_url: moodleUser['https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'].lis_outcome_service_url,
+        }
+      }
+    }
+  }
+
+  async getUser(payload: unknown): Promise<User> {
+    const parsedPayload = getUserPayloadSchema.parse(payload)
+    const state = await verifyMessage(parsedPayload.state) as StartLaunchPayload
+    const user = await verifyMessageOnISS(parsedPayload.id_token, state.iss) as MoodleUser
+    return this.formatUser(user)
   }
 
   async sendGrade(user: User, grade: number): Promise<void> {

@@ -1,11 +1,11 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { MoodleLTIServices, startPayloadSchema } from './moodle/services'
+import { FastifyInstance } from 'fastify'
+import { MoodleLTIServices } from './moodle/services'
+import LTIControllers from './controllers'
 
 const moodleLTIServices = new MoodleLTIServices()
+const ltiControllers = new LTIControllers(moodleLTIServices)
 
 export default function ltiRoutes(fastify: FastifyInstance, _options: unknown): void {
-  fastify.post('/login', async (req: FastifyRequest, _reply: FastifyReply) => {
-    const redirect_url = await moodleLTIServices.startLaunch(startPayloadSchema.parse(req.body))
-    return redirect_url
-  })
+  fastify.post('/login', ltiControllers.startLauch.bind(ltiControllers))
+  fastify.post('/redirect', ltiControllers.redirect.bind(ltiControllers))
 }

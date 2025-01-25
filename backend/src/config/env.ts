@@ -9,7 +9,8 @@ const hostSchema = z.object({
     .default('3333')
     .transform(v => parseInt(v, 10))
     .refine(v => !isNaN(v) && v >= 0 && v <= 65535, { message: 'PORT must be a number between 0 and 65535' }),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development')
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  REDIRECT_URL: z.string().url(),
 })
 
 const envSchema = z.object({
@@ -20,6 +21,7 @@ const parsedEnv = envSchema.safeParse({
   host: {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
+    REDIRECT_URL: process.env.REDIRECT_URL,
   },
 })
 

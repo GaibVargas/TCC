@@ -1,7 +1,7 @@
 import { User } from '../entities/user/type'
 
-export interface LTIServices <StartLaunchPayloadType> {
-  startLaunch(payload: StartLaunchPayloadType): Promise<string>
-  getUser(): Promise<User>
+export interface LTIServices {
+  startLaunch(payload: unknown): Promise<string>
+  getUser(payload: unknown): Promise<User>
   sendGrade(user: User, grade: number): Promise<void>
 }
