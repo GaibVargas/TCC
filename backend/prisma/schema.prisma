@@ -6,3 +6,27 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id Int @id @default(autoincrement())
+  public_id String @unique @default(uuid())
+
+  name String
+  role String
+  locale String
+
+  lms_iss String
+  lms_platform String
+  lms_user_id String
+  lms_version String
+  lms_client_id String
+  lms_outcome_source_id String
+  lms_outcome_service_url String
+
+  auth_refresh_token String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lms_iss, lms_user_id])
+}
