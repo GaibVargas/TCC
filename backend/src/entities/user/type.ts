@@ -22,7 +22,7 @@ const rolesSchema = z.enum([UserRoles.INSTRUCTOR, UserRoles.PARTICIPANT])
 export type Roles = z.infer<typeof rolesSchema>
 
 export const userSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().int(),
   name: z.string(),
   role: rolesSchema,
   locale: z.string(),
@@ -32,7 +32,7 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>
 
 export const stubUser: User = {
-  id: '1',
+  id: 1,
   name: 'Stub',
   role: UserRoles.PARTICIPANT,
   locale: 'pt-br',
