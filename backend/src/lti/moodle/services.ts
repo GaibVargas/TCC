@@ -59,7 +59,6 @@ export class MoodleLTIServices implements LTIServices {
 
   private formatUser(moodleUser: MoodleUser): User {
     return {
-      id: moodleUser.sub,
       name: moodleUser.name,
       locale: moodleUser['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].locale,
       role: getUserRole(moodleUser['https://purl.imsglobal.org/spec/lti/claim/roles']),

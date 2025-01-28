@@ -1,4 +1,5 @@
-import { Roles, UserRoles } from './type'
+import prisma from '../../config/db'
+import { Roles, User, UserRoles } from './type'
 
 export function getUserRole(roles: string[]): Roles {
   type RoleOption = {
@@ -51,4 +52,22 @@ export function getUserRole(roles: string[]): Roles {
     }
   }
   return UserRoles.PARTICIPANT
+}
+
+export async function createUser(user: User): Promise<void> {
+  await prisma.user.create({
+    data: {
+      name: user.name,
+      role: user.role,
+      locale: user.locale,
+      lms_iss: user.lms.iss,
+      lms_platform: user.lms.platform,
+      lms_user_id: user.lms.user_id,
+      lms_version: user.lms.version,
+      lms_client_id: user.lms.client_id,
+      lms_outcome_source_id: user.lms.outcome.source_id,
+      lms_outcome_service_url: user.lms.outcome.service_url,
+      auth_refresh_token: 'aaaa'
+    }
+  })
 }
