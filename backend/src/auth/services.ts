@@ -3,7 +3,7 @@ import { LoggedUserTokens } from '../entities/user/services'
 import { generateUserAccessToken, verifyToken } from './token'
 import HttpRequestError from '../utils/error'
 import { MinUser } from '../entities/user/type'
-import prisma from '../config/db'
+import userModel from '../entities/user/model'
 
 export async function refreshAccessToken(
   refresh_token: string,
@@ -16,16 +16,7 @@ export async function refreshAccessToken(
     })
   }
   const user = token.decoded as MinUser
-  const dbUser = await prisma.user.findUnique({
-    where: {
-      public_id: user.public_id,
-    },
-    select: {
-      public_id: true,
-      name: true,
-      role: true,
-    },
-  })
+  const dbUser = await userModel.findMinUserByPublicId(user.public_id)
   if (!dbUser)
     throw new HttpRequestError({
       status_code: 400,
@@ -33,7 +24,7 @@ export async function refreshAccessToken(
     })
   return {
     refresh_token,
-    access_token: generateUserAccessToken(dbUser as MinUser),
+    access_token: generateUserAccessToken(dbUser),
   }
 }
 
