@@ -1,11 +1,25 @@
 import { JwtPayload, sign, SignOptions, verify } from 'jsonwebtoken'
+import { MinUser } from '../entities/user/type'
+import { config } from '../config/env'
 
-export function generateToken(
+function generateToken(
   payload: string | Buffer | object,
   secret: string,
   options: SignOptions = {},
 ): string {
   return sign(payload, secret, options)
+}
+
+export function generateUserAccessToken(user: MinUser): string {
+  return generateToken(user, config.auth.ACCESS_TOKEN_SECRET, {
+    expiresIn: config.auth.ACCESS_TOKEN_EXPIRATION,
+  })
+}
+
+export function generateUserRefreshToken(user: MinUser): string {
+  return generateToken(user, config.auth.REFRESH_TOKEN_SECRET, {
+    expiresIn: config.auth.REFRESH_TOKEN_EXPIRATION,
+  })
 }
 
 interface VerifyTokenValidResult {

@@ -14,8 +14,8 @@ export default class LTIControllers {
   }
 
   async startLauch(req: FastifyRequest, res: FastifyReply): Promise<void> {
-    const redirect_url = await this.ltiService.startLaunch(req.body)
-    res.redirect(redirect_url)
+    const LTI_REDIRECT_URL = await this.ltiService.startLaunch(req.body)
+    res.redirect(LTI_REDIRECT_URL)
   }
 
   async login(

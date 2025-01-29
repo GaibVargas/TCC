@@ -4,7 +4,7 @@ import { CreateUserPayload, User } from '../../entities/user/type'
 import { LTIServices } from '../services'
 import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
 import moodleUris from './links'
-import { redirect_url } from '../constants'
+import { LTI_REDIRECT_URL } from '../constants'
 import { MoodleUser } from './types'
 import { getUserRole } from '../../entities/user/services'
 
@@ -45,7 +45,7 @@ export class MoodleLTIServices implements LTIServices {
     const redirectUrl =
       `${moodleOidcUrl}?` +
       `client_id=${encodeURIComponent(client_id)}&` +
-      `redirect_uri=${encodeURIComponent(redirect_url)}&` +
+      `redirect_uri=${encodeURIComponent(LTI_REDIRECT_URL)}&` +
       `response_type=id_token&` +
       `scope=openid&` + 
       `state=${encodeURIComponent(state)}&` +

@@ -1,7 +1,15 @@
-import { generateToken } from '../../auth/token'
+import {
+  generateUserAccessToken,
+  generateUserRefreshToken,
+} from '../../auth/token'
 import prisma from '../../config/db'
-import { config } from '../../config/env'
-import { CreateUserPayload, MinUser, Roles, rolesSchema, UserRoles } from './type'
+import {
+  CreateUserPayload,
+  MinUser,
+  Roles,
+  rolesSchema,
+  UserRoles,
+} from './type'
 
 export function getValidatedUserRole(role: string): UserRoles {
   return rolesSchema.parse(role)
@@ -88,7 +96,7 @@ async function updateUser(user: CreateUserPayload): Promise<MinUser> {
       lms_iss_lms_user_id: {
         lms_iss: user.lms.iss,
         lms_user_id: user.lms.user_id,
-      }
+      },
     },
     data: {
       name: user.name,
@@ -99,7 +107,7 @@ async function updateUser(user: CreateUserPayload): Promise<MinUser> {
       lms_client_id: user.lms.client_id,
       lms_outcome_source_id: user.lms.outcome.source_id,
       lms_outcome_service_url: user.lms.outcome.service_url,
-    }
+    },
   })
   return {
     public_id: dbUser.public_id,
@@ -108,31 +116,33 @@ async function updateUser(user: CreateUserPayload): Promise<MinUser> {
   }
 }
 
-export async function updateOrCreateUser(user: CreateUserPayload): Promise<MinUser> {
+export async function updateOrCreateUser(
+  user: CreateUserPayload,
+): Promise<MinUser> {
   const dbUser = await prisma.user.findFirst({
     where: {
       lms_iss: user.lms.iss,
       lms_user_id: user.lms.user_id,
-    }
+    },
   })
   if (!dbUser) return createUser(user)
   return updateUser(user)
 }
 
 export type LoggedUserTokens = {
-  accessToken: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
 }
 
 export async function loginUser(user: MinUser): Promise<LoggedUserTokens> {
-  const accessToken = generateToken(user, config.auth.ACCESS_TOKEN_SECRET)
-  const refreshToken = generateToken(user, config.auth.REFRESH_TOKEN_SECRET)
+  const access_token = generateUserAccessToken(user)
+  const refresh_token = generateUserRefreshToken(user)
   await prisma.user.update({
     where: { public_id: user.public_id },
-    data: { auth_refresh_token: refreshToken },
+    data: { auth_refresh_token: refresh_token },
   })
   return {
-    accessToken,
-    refreshToken,
+    access_token,
+    refresh_token,
   }
 }

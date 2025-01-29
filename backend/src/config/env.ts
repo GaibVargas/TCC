@@ -15,7 +15,7 @@ const hostSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
-  REDIRECT_URL: z.string().url(),
+  LTI_REDIRECT_URL: z.string().url(),
 })
 
 const dbSchema = z.object({
@@ -49,7 +49,7 @@ const parsedEnv = envSchema.safeParse({
   host: {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
-    REDIRECT_URL: process.env.REDIRECT_URL,
+    LTI_REDIRECT_URL: process.env.LTI_REDIRECT_URL,
   },
   db: {
     POSTGRES_USER: process.env.POSTGRES_USER,

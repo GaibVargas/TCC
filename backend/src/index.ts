@@ -6,6 +6,8 @@ import { config } from './config/env'
 import ltiRoutes from './lti/routes'
 import prisma from './config/db'
 import userRoutes from './entities/user/routes'
+import HttpRequestError from './utils/error'
+import authRoutes from './auth/routes'
 
 const server = Fastify({
   logger: true,
@@ -22,6 +24,14 @@ const prismaErrors = [
 server.setErrorHandler((error, _request, reply) => {
   server.log.error(error)
 
+  if (error instanceof HttpRequestError) {
+    return reply.status(error.status_code).send({
+      status_code: error.status_code,
+      error: 'Request error',
+      message: error.message,
+    })
+  }
+
   // Handle Zod validation errors
   if (error instanceof z.ZodError) {
     const validationErrors = error.errors.map((err) => ({
@@ -30,7 +40,7 @@ server.setErrorHandler((error, _request, reply) => {
     }))
 
     return reply.status(400).send({
-      statusCode: 400,
+      status_code: 400,
       error: 'Bad Request',
       message: 'Validation Error',
       issues: validationErrors,
@@ -39,27 +49,27 @@ server.setErrorHandler((error, _request, reply) => {
 
   // Handle Prisma errors
   if (prismaErrors.some((errorType) => error instanceof errorType)) {
-    let statusCode = 500
+    let status_code = 500
     let message = 'Database error'
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       message = `Request error code ${error.code}`
     } else if (error instanceof Prisma.PrismaClientValidationError) {
-      statusCode = 400
+      status_code = 400
       message = `Validation error code ${error.code}`
     } else if (error instanceof Prisma.PrismaClientRustPanicError) {
       message = 'Database Engine Unavailable'
     }
 
-    return reply.status(statusCode).send({
-      statusCode,
+    return reply.status(status_code).send({
+      status_code,
       error: 'Database Request Error',
       message,
     })
   }
 
   return reply.status(500).send({
-    statusCode: 500,
+    status_code: 500,
     error: 'UnknownError',
     message: 'An unknown error occurred',
   })
@@ -69,6 +79,7 @@ server.get('/healthcheck', async (_request, _reply) => {
   return { message: 'Hello World!' }
 })
 server.register(ltiRoutes, { prefix: '/lti' })
+server.register(authRoutes, { prefix: '/auth' })
 server.register(userRoutes, { prefix: '/user' })
 
 const start = async (): Promise<void> => {
