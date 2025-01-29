@@ -16,7 +16,7 @@ const lmsSchema = z.object({
   outcome: z.object({
     source_id: z.string(),
     service_url: z.string().url(),
-  })
+  }),
 })
 
 export const userSchema = z.object({
@@ -25,7 +25,7 @@ export const userSchema = z.object({
   name: z.string(),
   role: rolesSchema,
   locale: z.string(),
-  lms: lmsSchema,  
+  lms: lmsSchema,
 })
 export type User = z.infer<typeof userSchema>
 
@@ -56,7 +56,7 @@ export const stubUser: User = {
     client_id: '1',
     outcome: {
       source_id: 'source_id',
-      service_url: 'http://localhost/moodle'
-    }
-  }
+      service_url: 'http://localhost/moodle',
+    },
+  },
 }

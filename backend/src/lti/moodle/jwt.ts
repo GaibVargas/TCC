@@ -29,7 +29,9 @@ export async function signMessage(message: JWTMessage): Promise<string> {
   })
 }
 
-export async function verifyMessage(message: string): Promise<string | JwtPayload> {
+export async function verifyMessage(
+  message: string,
+): Promise<string | JwtPayload> {
   const publicKeyFilepath = resolve(
     __dirname,
     '..',

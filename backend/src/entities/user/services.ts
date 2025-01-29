@@ -92,7 +92,10 @@ export type LoggedUserTokens = {
 export async function loginUser(user: MinUser): Promise<LoggedUserTokens> {
   const access_token = generateUserAccessToken(user)
   const refresh_token = generateUserRefreshToken(user)
-  await userModel.updateUserRefreshTokenByPublicId(user.public_id, refresh_token)
+  await userModel.updateUserRefreshTokenByPublicId(
+    user.public_id,
+    refresh_token,
+  )
   return {
     access_token,
     refresh_token,

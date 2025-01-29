@@ -19,7 +19,10 @@ async function generateKeys() {
   const privateKeyPEM = key.toPEM(true) // PEM format for private key
   const publicKeyPEM = key.toPEM(false) // PEM format for public key
 
-  fs.writeFileSync('jwks_public.json', JSON.stringify({ keys: [publicKey] }, null, 2))
+  fs.writeFileSync(
+    'jwks_public.json',
+    JSON.stringify({ keys: [publicKey] }, null, 2),
+  )
   fs.writeFileSync('private_key.pem', privateKeyPEM)
   fs.writeFileSync('public_key.pem', publicKeyPEM)
 }

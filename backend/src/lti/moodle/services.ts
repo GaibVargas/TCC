@@ -27,18 +27,23 @@ export const getUserPayloadSchema = z.object({
 export type GetUserPayload = z.infer<typeof getUserPayloadSchema>
 
 export class MoodleLTIServices implements LTIServices {
-  async startLaunch(
-    payload: unknown,
-  ): Promise<string> {
+  async startLaunch(payload: unknown): Promise<string> {
     const parsedPayload = startLauchPayloadSchema.parse(payload)
-    const { iss, target_link_uri, login_hint, lti_message_hint, client_id, lti_deployment_id } = parsedPayload
+    const {
+      iss,
+      target_link_uri,
+      login_hint,
+      lti_message_hint,
+      client_id,
+      lti_deployment_id,
+    } = parsedPayload
     const state = await signMessage({
       iss,
       target_link_uri,
       login_hint,
       lti_message_hint,
       client_id,
-      lti_deployment_id
+      lti_deployment_id,
     })
     const moodleOidcUrl = moodleUris(iss).auth
     const nonce = randomBytes(16).toString('hex')
@@ -47,7 +52,7 @@ export class MoodleLTIServices implements LTIServices {
       `client_id=${encodeURIComponent(client_id)}&` +
       `redirect_uri=${encodeURIComponent(LTI_REDIRECT_URL)}&` +
       `response_type=id_token&` +
-      `scope=openid&` + 
+      `scope=openid&` +
       `state=${encodeURIComponent(state)}&` +
       `login_hint=${encodeURIComponent(login_hint)}&` +
       `lti_message_hint=${encodeURIComponent(lti_message_hint)}&` +
@@ -60,26 +65,43 @@ export class MoodleLTIServices implements LTIServices {
   private formatUser(moodleUser: MoodleUser): CreateUserPayload {
     return {
       name: moodleUser.name,
-      locale: moodleUser['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].locale,
-      role: getUserRole(moodleUser['https://purl.imsglobal.org/spec/lti/claim/roles']),
+      locale:
+        moodleUser[
+          'https://purl.imsglobal.org/spec/lti/claim/launch_presentation'
+        ].locale,
+      role: getUserRole(
+        moodleUser['https://purl.imsglobal.org/spec/lti/claim/roles'],
+      ),
       lms: {
         iss: moodleUser.iss,
         platform: 'moodle',
         client_id: moodleUser.aud,
-        version: moodleUser['https://purl.imsglobal.org/spec/lti/claim/version'],
+        version:
+          moodleUser['https://purl.imsglobal.org/spec/lti/claim/version'],
         user_id: moodleUser.sub,
         outcome: {
-          source_id: moodleUser['https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'].lis_result_sourcedid,
-          service_url: moodleUser['https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'].lis_outcome_service_url,
-        }
-      }
+          source_id:
+            moodleUser[
+              'https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'
+            ].lis_result_sourcedid,
+          service_url:
+            moodleUser[
+              'https://purl.imsglobal.org/spec/lti-bo/claim/basicoutcome'
+            ].lis_outcome_service_url,
+        },
+      },
     }
   }
 
   async getUser(payload: unknown): Promise<CreateUserPayload> {
     const parsedPayload = getUserPayloadSchema.parse(payload)
-    const state = await verifyMessage(parsedPayload.state) as StartLaunchPayload
-    const user = await verifyMessageOnISS(parsedPayload.id_token, state.iss) as MoodleUser
+    const state = (await verifyMessage(
+      parsedPayload.state,
+    )) as StartLaunchPayload
+    const user = (await verifyMessageOnISS(
+      parsedPayload.id_token,
+      state.iss,
+    )) as MoodleUser
     return this.formatUser(user)
   }
 

@@ -1,7 +1,7 @@
 type MoodleURIs = {
-  auth: string;
-  certs: string;
-  token: string;
+  auth: string
+  certs: string
+  token: string
 }
 
 export default function moodleUris(iss: string): MoodleURIs {

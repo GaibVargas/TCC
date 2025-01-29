@@ -9,7 +9,7 @@ const authenticationPlugin: FastifyPluginCallback = (fastify, _opts, done) => {
     if (req.routeOptions.config.skipAuth) {
       return
     }
-    
+
     const access_token = req.headers.authorization
     if (!access_token) {
       return reply

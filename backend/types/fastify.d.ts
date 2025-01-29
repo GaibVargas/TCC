@@ -4,7 +4,7 @@ declare module 'fastify' {
   interface FastifyRequest {
     user?: MinUser
   }
-  
+
   interface FastifyContextConfig {
     skipAuth?: boolean
   }
