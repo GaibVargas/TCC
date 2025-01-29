@@ -4,6 +4,8 @@ export enum UserRoles {
   INSTRUCTOR = 'instructor',
   PARTICIPANT = 'participant',
 }
+export const rolesSchema = z.nativeEnum(UserRoles)
+export type Roles = z.infer<typeof rolesSchema>
 
 const lmsSchema = z.object({
   user_id: z.string(),
@@ -17,22 +19,32 @@ const lmsSchema = z.object({
   })
 })
 
-const rolesSchema = z.enum([UserRoles.INSTRUCTOR, UserRoles.PARTICIPANT])
-
-export type Roles = z.infer<typeof rolesSchema>
-
 export const userSchema = z.object({
   id: z.number().int(),
+  public_id: z.string(),
   name: z.string(),
   role: rolesSchema,
   locale: z.string(),
   lms: lmsSchema,  
 })
-
 export type User = z.infer<typeof userSchema>
+
+export const createUserPayloadSchema = userSchema.omit({
+  id: true,
+  public_id: true,
+})
+export type CreateUserPayload = z.infer<typeof createUserPayloadSchema>
+
+export const minUserSchema = userSchema.pick({
+  public_id: true,
+  name: true,
+  role: true,
+})
+export type MinUser = z.infer<typeof minUserSchema>
 
 export const stubUser: User = {
   id: 1,
+  public_id: 'id',
   name: 'Stub',
   role: UserRoles.PARTICIPANT,
   locale: 'pt-br',

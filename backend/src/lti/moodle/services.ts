@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
-import { User } from '../../entities/user/type'
+import { CreateUserPayload, User } from '../../entities/user/type'
 import { LTIServices } from '../services'
 import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
 import moodleUris from './links'
@@ -57,7 +57,7 @@ export class MoodleLTIServices implements LTIServices {
     return redirectUrl
   }
 
-  private formatUser(moodleUser: MoodleUser): User {
+  private formatUser(moodleUser: MoodleUser): CreateUserPayload {
     return {
       name: moodleUser.name,
       locale: moodleUser['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].locale,
@@ -76,7 +76,7 @@ export class MoodleLTIServices implements LTIServices {
     }
   }
 
-  async getUser(payload: unknown): Promise<User> {
+  async getUser(payload: unknown): Promise<CreateUserPayload> {
     const parsedPayload = getUserPayloadSchema.parse(payload)
     const state = await verifyMessage(parsedPayload.state) as StartLaunchPayload
     const user = await verifyMessageOnISS(parsedPayload.id_token, state.iss) as MoodleUser

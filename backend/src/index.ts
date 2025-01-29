@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { config } from './config/env'
 import ltiRoutes from './lti/routes'
 import prisma from './config/db'
+import userRoutes from './entities/user/routes'
 
 const server = Fastify({
   logger: true,
@@ -68,6 +69,7 @@ server.get('/healthcheck', async (_request, _reply) => {
   return { message: 'Hello World!' }
 })
 server.register(ltiRoutes, { prefix: '/lti' })
+server.register(userRoutes, { prefix: '/user' })
 
 const start = async (): Promise<void> => {
   try {

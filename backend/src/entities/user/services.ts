@@ -1,5 +1,11 @@
+import { generateToken } from '../../auth/token'
 import prisma from '../../config/db'
-import { Roles, User, UserRoles } from './type'
+import { config } from '../../config/env'
+import { CreateUserPayload, MinUser, Roles, rolesSchema, UserRoles } from './type'
+
+export function getValidatedUserRole(role: string): UserRoles {
+  return rolesSchema.parse(role)
+}
 
 export function getUserRole(roles: string[]): Roles {
   type RoleOption = {
@@ -54,8 +60,8 @@ export function getUserRole(roles: string[]): Roles {
   return UserRoles.PARTICIPANT
 }
 
-export async function createUser(user: User): Promise<void> {
-  await prisma.user.create({
+async function createUser(user: CreateUserPayload): Promise<MinUser> {
+  const dbUser = await prisma.user.create({
     data: {
       name: user.name,
       role: user.role,
@@ -67,7 +73,66 @@ export async function createUser(user: User): Promise<void> {
       lms_client_id: user.lms.client_id,
       lms_outcome_source_id: user.lms.outcome.source_id,
       lms_outcome_service_url: user.lms.outcome.service_url,
-      auth_refresh_token: 'aaaa'
+    },
+  })
+  return {
+    public_id: dbUser.public_id,
+    name: dbUser.name,
+    role: getValidatedUserRole(dbUser.role),
+  }
+}
+
+async function updateUser(user: CreateUserPayload): Promise<MinUser> {
+  const dbUser = await prisma.user.update({
+    where: {
+      lms_iss_lms_user_id: {
+        lms_iss: user.lms.iss,
+        lms_user_id: user.lms.user_id,
+      }
+    },
+    data: {
+      name: user.name,
+      role: user.role,
+      locale: user.locale,
+      lms_platform: user.lms.platform,
+      lms_version: user.lms.version,
+      lms_client_id: user.lms.client_id,
+      lms_outcome_source_id: user.lms.outcome.source_id,
+      lms_outcome_service_url: user.lms.outcome.service_url,
     }
   })
+  return {
+    public_id: dbUser.public_id,
+    name: dbUser.name,
+    role: getValidatedUserRole(dbUser.role),
+  }
+}
+
+export async function updateOrCreateUser(user: CreateUserPayload): Promise<MinUser> {
+  const dbUser = await prisma.user.findFirst({
+    where: {
+      lms_iss: user.lms.iss,
+      lms_user_id: user.lms.user_id,
+    }
+  })
+  if (!dbUser) return createUser(user)
+  return updateUser(user)
+}
+
+export type LoggedUserTokens = {
+  accessToken: string
+  refreshToken: string
+}
+
+export async function loginUser(user: MinUser): Promise<LoggedUserTokens> {
+  const accessToken = generateToken(user, config.auth.ACCESS_TOKEN_SECRET)
+  const refreshToken = generateToken(user, config.auth.REFRESH_TOKEN_SECRET)
+  await prisma.user.update({
+    where: { public_id: user.public_id },
+    data: { auth_refresh_token: refreshToken },
+  })
+  return {
+    accessToken,
+    refreshToken,
+  }
 }

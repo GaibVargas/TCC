@@ -7,5 +7,5 @@ const ltiControllers = new LTIControllers(moodleLTIServices)
 
 export default function ltiRoutes(fastify: FastifyInstance, _options: unknown): void {
   fastify.post('/login', ltiControllers.startLauch.bind(ltiControllers))
-  fastify.post('/redirect', ltiControllers.redirect.bind(ltiControllers))
+  fastify.post('/redirect', ltiControllers.login.bind(ltiControllers))
 }

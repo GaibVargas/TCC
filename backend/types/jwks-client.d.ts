@@ -8,7 +8,7 @@ declare module 'jwks-client' {
     getSigningKey: (kid: string | undefined, callback: (err: null | Error, key: Key) => void) => void
   }
   type JWKSPayload = {
-    jwksUri: string
+    jwksUri: string;
   }
 
   export default function jwksClient(payload: JWKSPayload): JWKSClient

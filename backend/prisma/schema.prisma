@@ -23,7 +23,7 @@ model User {
   lms_outcome_source_id String
   lms_outcome_service_url String
 
-  auth_refresh_token String
+  auth_refresh_token String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
