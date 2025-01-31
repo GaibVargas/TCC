@@ -8,6 +8,7 @@ import prisma from './config/db'
 import userRoutes from './entities/user/routes'
 import HttpRequestError from './utils/error'
 import authRoutes from './auth/routes'
+import quizRoutes from './entities/quiz/routes'
 
 const server = Fastify({
   logger: true,
@@ -81,6 +82,7 @@ server.get('/healthcheck', async (_request, _reply) => {
 server.register(ltiRoutes, { prefix: '/lti' })
 server.register(authRoutes, { prefix: '/auth' })
 server.register(userRoutes, { prefix: '/user' })
+server.register(quizRoutes, { prefix: '/quiz' })
 
 const start = async (): Promise<void> => {
   try {

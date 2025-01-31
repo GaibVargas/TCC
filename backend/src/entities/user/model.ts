@@ -35,6 +35,15 @@ export async function findUserByLMSId(
   })
 }
 
+export async function getUserIdByPublicId(public_id: string): Promise<number> {
+  const user = await prisma.user.findUnique({
+    where: { public_id },
+    select: { id: true },
+  })
+  if (!user) throw Error('User not found')
+  return user.id
+}
+
 export async function createUser(user: CreateUserPayload): Promise<MinUser> {
   const dbUser = await prisma.user.create({
     data: {
@@ -98,6 +107,7 @@ export async function updateUserRefreshTokenByPublicId(
 const userModel = {
   findMinUserByPublicId,
   findUserByLMSId,
+  getUserIdByPublicId,
   createUser,
   updateUserByLMSId,
   updateUserRefreshTokenByPublicId,

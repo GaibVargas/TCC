@@ -28,6 +28,14 @@ export async function refreshAccessToken(
   }
 }
 
+export function userVerify(user: MinUser | null | undefined): asserts user is MinUser {
+  if(!user)
+    throw new HttpRequestError({
+      status_code: 401,
+      message: 'Unauthorized'
+    })
+}
+
 const authService = {
   refreshAccessToken,
 }
