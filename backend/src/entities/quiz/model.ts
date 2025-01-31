@@ -5,9 +5,9 @@
 import prisma from '../../config/db'
 import userModel from '../user/model'
 import { MinUser } from '../user/type'
-import { CreateQuizPayload } from './type'
+import { CreateQuizPayload, Quiz, quiz_schema } from './type'
 
-export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<void> {
+export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<Quiz> {
   const author_id = await userModel.getUserIdByPublicId(user.public_id)
   const quizDb = await prisma.quiz.create({
     data: {
@@ -40,7 +40,7 @@ export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promis
     },
     omit: { id: true }
   })
-  console.dir(quizDb, { depth: null })
+  return quiz_schema.parse(quizDb)
 }
 
 const quizModel = {

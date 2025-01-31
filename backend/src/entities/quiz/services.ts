@@ -1,9 +1,9 @@
 import { MinUser } from '../user/type'
 import quizModel from './model'
-import { CreateQuizPayload } from './type'
+import { CreateQuizPayload, Quiz } from './type'
 
-export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<void> {
-  await quizModel.createQuiz(user, quiz)
+export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<Quiz> {
+  return await quizModel.createQuiz(user, quiz)
 }
 
 const quizServices = {
