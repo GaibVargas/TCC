@@ -29,6 +29,8 @@ export async function updateQuiz(
   req: FastifyRequest<{ Params: PublicIdParams }>,
   _reply: FastifyReply,
 ): Promise<Quiz> {
+  userVerify(req.user)
+  await quizServices.userIsAuthorOfQuizOrThrow(req.user.public_id, req.params.public_id)
   return await quizServices.updateQuiz(req.params.public_id, update_quiz_schema.parse(req.body))
 }
 

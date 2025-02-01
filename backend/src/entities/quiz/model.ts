@@ -185,10 +185,22 @@ export async function findQuizByPublicIdAndUpdate(
   return current_quiz
 }
 
+export async function getQuizAuthorPublicId(public_id: string): Promise<string | null> {
+  const quiz = await prisma.quiz.findUnique({
+    where: { public_id },
+    include: {
+      author: true
+    }
+  })
+  if (!quiz?.author) return null
+  return quiz.author.public_id
+}
+
 const quizModel = {
   createQuiz,
   findQuizByPublicId,
   findQuizByPublicIdAndUpdate,
+  getQuizAuthorPublicId,
 }
 
 export default quizModel
