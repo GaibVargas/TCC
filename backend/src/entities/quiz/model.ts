@@ -3,11 +3,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import prisma from '../../config/db'
+import HttpRequestError from '../../utils/error'
 import userModel from '../user/model'
 import { MinUser } from '../user/type'
-import { CreateQuizPayload, Quiz, quiz_schema } from './type'
+import { CreateQuizPayload, Quiz, quiz_schema, UpdateQuizPayload } from './type'
 
-export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<Quiz> {
+export async function createQuiz(
+  user: MinUser,
+  quiz: CreateQuizPayload,
+): Promise<Quiz> {
   const author_id = await userModel.getUserIdByPublicId(user.public_id)
   const quizDb = await prisma.quiz.create({
     data: {
@@ -28,23 +32,167 @@ export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promis
         })),
       },
     },
-    include: {
-      questions: {
-        omit: { id: true },
-        include: {
-          options: {
-            omit: { id: true }
-          }
-        }
-      }
-    },
-    omit: { id: true }
   })
   return quiz_schema.parse(quizDb)
 }
 
+export async function findQuizByPublicId(public_id: string): Promise<Quiz> {
+  const quizDb = await prisma.quiz.findUnique({
+    where: { public_id },
+    include: {
+      questions: {
+        where: { is_deleted: false },
+        orderBy: { id: 'asc' },
+        include: {
+          options: {
+            where: { is_deleted: false },
+            orderBy: { id: 'asc' },
+          },
+        },
+      },
+    },
+  })
+  return quiz_schema.parse(quizDb)
+}
+
+export async function findQuizByPublicIdAndUpdate(
+  public_id: string,
+  quiz: UpdateQuizPayload,
+): Promise<Quiz> {
+  if (public_id !== quiz.public_id)
+    throw new HttpRequestError({
+      status_code: 400,
+      message: 'Id must be equal to quiz.public_id',
+    })
+  const previous_quiz = await findQuizByPublicId(public_id)
+  await prisma.$transaction(async (tx) => {
+    // Update Quiz
+    if (previous_quiz.title !== quiz.title) {
+      await tx.quiz.update({
+        where: { public_id },
+        data: { title: quiz.title },
+      })
+    }
+
+    // Handle existing questions updates
+    for (const prev_question of previous_quiz.questions) {
+      const cur_question = quiz.questions.find(
+        (q) => q.public_id === prev_question.public_id,
+      )
+      // Flag deleted question
+      if (!cur_question) {
+        await tx.question.update({
+          where: { public_id: prev_question.public_id },
+          data: { is_deleted: true },
+        })
+        continue
+      }
+      // Update question
+      if (
+        cur_question.correct_text_answer !==
+          prev_question.correct_text_answer ||
+        cur_question.description !== prev_question.description ||
+        cur_question.time_limit !== prev_question.time_limit ||
+        cur_question.type !== prev_question.type
+      ) {
+        await tx.question.update({
+          where: { public_id: prev_question.public_id },
+          data: {
+            correct_text_answer: cur_question.correct_text_answer,
+            description: cur_question.description,
+            time_limit: cur_question.time_limit ?? null,
+            type: cur_question.type,
+          },
+        })
+      }
+
+      //Handle options
+      for (const prev_question_option of prev_question.options) {
+        const cur_question_option = cur_question.options.find(
+          (o) => o.public_id === prev_question_option.public_id,
+        )
+        // Flag deleted option
+        if (!cur_question_option) {
+          await tx.questionOption.update({
+            where: { public_id: prev_question_option.public_id },
+            data: { is_deleted: true },
+          })
+          continue
+        }
+        // Update option
+        if (
+          cur_question_option.description !==
+            prev_question_option.description ||
+          cur_question_option.is_correct_answer !==
+            prev_question_option.is_correct_answer
+        ) {
+          await tx.questionOption.update({
+            where: { public_id: prev_question_option.public_id },
+            data: {
+              description: cur_question_option.description,
+              is_correct_answer: cur_question_option.is_correct_answer,
+            },
+          })
+        }
+      }
+
+      // Create new options
+      const prev_options_public_id = prev_question.options.map(
+        (o) => o.public_id,
+      )
+      const new_options = cur_question.options.filter(
+        (o) => !prev_options_public_id.includes(o.public_id ?? ''),
+      )
+      if (!new_options.length) continue
+      const question_id = await tx.question.findUniqueOrThrow({
+        where: { public_id: cur_question.public_id },
+        select: { id: true }
+      })
+      for (const new_option of new_options) {
+        await tx.questionOption.create({
+          data: {
+            question_id: question_id.id,
+            description: new_option.description,
+            is_correct_answer: new_option.is_correct_answer,
+          }
+        })
+      }
+    }
+
+    // Create new questions
+    const prev_questions_public_id = previous_quiz.questions.map(q => q.public_id)
+    const new_questions = quiz.questions.filter(q => !prev_questions_public_id.includes(q.public_id ?? ''))
+    if (!new_questions.length) return
+    const quiz_id = await tx.quiz.findUniqueOrThrow({
+      where: { public_id },
+      select: { id: true }
+    })
+    for (const new_question of new_questions) {
+      await tx.question.create({
+        data: {
+          quiz_id: quiz_id.id,
+          type: new_question.type,
+          description: new_question.description,
+          time_limit: new_question.time_limit ?? null,
+          correct_text_answer: new_question.correct_text_answer,
+          options: {
+            create: new_question.options.map((option) => ({
+              description: option.description,
+              is_correct_answer: option.is_correct_answer,
+            })),
+          },
+        }
+      })
+    }
+  })
+  const current_quiz = await findQuizByPublicId(public_id)
+  return current_quiz
+}
+
 const quizModel = {
   createQuiz,
+  findQuizByPublicId,
+  findQuizByPublicIdAndUpdate,
 }
 
 export default quizModel

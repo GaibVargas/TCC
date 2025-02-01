@@ -8,5 +8,8 @@ export default function quizRoutes(
 ): void {
   fastify.register(authenticationPlugin)
   fastify.register(isInstructorPlugin)
+
   fastify.post('/', quizController.createQuiz)
+  fastify.get('/:public_id', quizController.getQuiz)
+  fastify.post('/:public_id', quizController.updateQuiz)
 }

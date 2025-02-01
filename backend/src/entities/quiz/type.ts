@@ -7,6 +7,10 @@ export const create_question_option_schema = z.object({
 export const question_option_schema = create_question_option_schema.extend({
   public_id: z.string().uuid(),
 })
+export const update_question_option_schema = question_option_schema.extend({
+  public_id: z.string().uuid().optional(),
+})
+export type QuestionOption = z.infer<typeof question_option_schema>
 
 export enum QuestionType {
   MULTI_CHOICE = 'multi_choice',
@@ -25,6 +29,10 @@ export const question_schema = create_question_schema.extend({
   public_id: z.string().uuid(),
   options: z.array(question_option_schema),
 })
+export const update_question_schema = question_schema.extend({
+  public_id: z.string().uuid().optional(),
+  options: z.array(update_question_option_schema),
+})
 
 export const create_quiz_schema = z.object({
   title: z.string(),
@@ -34,6 +42,11 @@ export const quiz_schema = create_quiz_schema.extend({
   public_id: z.string().uuid(),
   questions: z.array(question_schema),
 })
+export const update_quiz_schema = create_quiz_schema.extend({
+  public_id: z.string().uuid().optional(),
+  questions: z.array(update_question_schema),
+})
 
 export type CreateQuizPayload = z.infer<typeof create_quiz_schema>
+export type UpdateQuizPayload = z.infer<typeof update_quiz_schema>
 export type Quiz = z.infer<typeof quiz_schema>
