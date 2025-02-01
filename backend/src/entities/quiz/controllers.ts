@@ -34,10 +34,20 @@ export async function updateQuiz(
   return await quizServices.updateQuiz(req.params.public_id, update_quiz_schema.parse(req.body))
 }
 
+export async function deleteQuiz(
+  req: FastifyRequest<{ Params: PublicIdParams }>,
+  _reply: FastifyReply,
+): Promise<void> {
+  userVerify(req.user)
+  await quizServices.userIsAuthorOfQuizOrThrow(req.user.public_id, req.params.public_id)
+  await quizServices.deleteQuiz(req.params.public_id)
+}
+
 const quizController = {
   createQuiz,
   getQuiz,
   updateQuiz,
+  deleteQuiz,
 }
 
 export default quizController

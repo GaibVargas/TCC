@@ -196,11 +196,19 @@ export async function getQuizAuthorPublicId(public_id: string): Promise<string |
   return quiz.author.public_id
 }
 
+export async function deleteQuizByPublicId(public_id: string): Promise<void> {
+  await prisma.quiz.update({
+    where: { public_id },
+    data: { is_deleted: true }
+  })
+}
+
 const quizModel = {
   createQuiz,
   findQuizByPublicId,
   findQuizByPublicIdAndUpdate,
   getQuizAuthorPublicId,
+  deleteQuizByPublicId,
 }
 
 export default quizModel

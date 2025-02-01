@@ -25,11 +25,16 @@ export async function userIsAuthorOfQuizOrThrow(user_public_id: string, quiz_pub
   }
 }
 
+export async function deleteQuiz(public_id: string): Promise<void> {
+  await quizModel.deleteQuizByPublicId(public_id)
+}
+
 const quizServices = {
   createQuiz,
   getQuiz,
   updateQuiz,
   userIsAuthorOfQuizOrThrow,
+  deleteQuiz,
 }
 
 export default quizServices

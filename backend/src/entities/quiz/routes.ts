@@ -12,4 +12,5 @@ export default function quizRoutes(
   fastify.post('/', quizController.createQuiz)
   fastify.get('/:public_id', quizController.getQuiz)
   fastify.post('/:public_id', quizController.updateQuiz)
+  fastify.delete('/:public_id', quizController.deleteQuiz)
 }
