@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import prisma from '../../config/db'
 import HttpRequestError from '../../utils/error'
 import userModel from '../user/model'
@@ -203,12 +204,33 @@ export async function deleteQuizByPublicId(public_id: string): Promise<void> {
   })
 }
 
+export async function findQuizByAuthorId(author_id: number): Promise<Quiz[]> {
+  const quizzes = await prisma.quiz.findMany({
+    where: { author_id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      questions: {
+        where: { is_deleted: false },
+        orderBy: { id: 'asc' },
+        include: {
+          options: {
+            where: { is_deleted: false },
+            orderBy: { id: 'asc' },
+          },
+        },
+      },
+    },
+  })
+  return z.array(quiz_schema).parse(quizzes)
+}
+
 const quizModel = {
   createQuiz,
   findQuizByPublicId,
   findQuizByPublicIdAndUpdate,
   getQuizAuthorPublicId,
   deleteQuizByPublicId,
+  findQuizByAuthorId,
 }
 
 export default quizModel

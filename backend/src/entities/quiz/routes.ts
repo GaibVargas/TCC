@@ -10,6 +10,7 @@ export default function quizRoutes(
   fastify.register(isInstructorPlugin)
 
   fastify.post('/', quizController.createQuiz)
+  fastify.get('/', quizController.getQuizzesByAuthor)
   fastify.get('/:public_id', quizController.getQuiz)
   fastify.post('/:public_id', quizController.updateQuiz)
   fastify.delete('/:public_id', quizController.deleteQuiz)
