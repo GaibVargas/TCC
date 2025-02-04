@@ -1,7 +1,3 @@
-<script lang="ts" setup>
-
-</script>
-
 <template>
   <v-container>
     <v-row align="center" justify="space-between">
@@ -11,6 +7,7 @@
         variant="plain"
         :hide-details="true"
         class="quiz-title font-weight-black"
+        autocomplete="off"
       ></v-text-field>
       <div class="btns">
         <v-btn color="primary" class="mr-2">Salvar</v-btn>
