@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 const modelValue = defineModel<boolean>({ required: true })
-  const emit = defineEmits<{
+const emit = defineEmits<{
   (e: 'update:modelValue', option: boolean): void
 }>()
 
@@ -15,4 +15,3 @@ function toggleCheckbox() {
   <v-btn v-else @click="toggleCheckbox" :ripple="false" density="compact" flat icon="mdi-circle-outline">
   </v-btn>
 </template>
-

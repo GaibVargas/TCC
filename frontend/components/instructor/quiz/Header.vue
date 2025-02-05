@@ -9,8 +9,8 @@ const emit = defineEmits<{
 
 
 <template>
-  <v-container>
-    <v-row align="center" justify="space-between">
+  <v-container fluid class="px-16">
+    <v-row align="center" justify="space-between" class="flex-fill ma-0">
       <v-text-field name="name" label="Título do quiz" variant="plain" :hide-details="true"
         class="quiz-title font-weight-black" autocomplete="off" v-model="modelValue"></v-text-field>
       <div class="btns">
