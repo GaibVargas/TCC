@@ -1,57 +1,6 @@
 <script lang="ts" setup>
-import { QuestionType, type Question, type QuestionOption, type Quiz } from '~/types/quiz'
-
-function baseQuestion(): Question {
-  return {
-    id: unique_id(),
-    type: QuestionType.MULTI_CHOICE,
-    description: '',
-    time_limit: null,
-    correct_text_answer: '',
-    options: [],
-    multi_choice_options: [
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-    ],
-    true_or_false_options: [
-      {
-        id: unique_id(),
-        description: 'Verdadeiro',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: 'Falso',
-        is_correct_answer: false,
-      },
-    ]
-  }
-}
-
-function baseQuiz(): Quiz {
-  return {
-    title: '',
-    questions: [baseQuestion()]
-  }
-}
+import type { InstructorQuizQuestionList } from '#components'
+import { QuestionType, type QuestionOption, type Quiz } from '~/types/quiz'
 
 const quiz: Quiz = reactive({
   title: '',
@@ -190,10 +139,23 @@ function selectQuestion(questionIndex: number) {
   currentQuestionIndexOnEdit.value = questionIndex
 }
 
+const questionListRef: Ref<InstanceType<typeof InstructorQuizQuestionList> | null> = ref(null)
+
+function addQuestion() {
+  quiz.questions.push(baseQuestion())
+  nextTick(() => {
+    const el = questionListRef?.value?.$el
+    if (el instanceof HTMLElement) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+    }
+  })
+}
+
 function removeQuestion(questionId: string) {
   quiz.questions = quiz.questions.filter(q => q.id !== questionId)
   if (!quiz.questions.length)
     quiz.questions.push(baseQuestion())
+  if (currentQuestionIndexOnEdit.value >= quiz.questions.length) currentQuestionIndexOnEdit.value = quiz.questions.length - 1
 }
 
 function formatQuiz(quiz: Quiz): Quiz {
@@ -225,18 +187,27 @@ function cancelQuiz() {
 </script>
 
 <template>
-  <v-container fluid class="ma-0 pa-0 fill-height w-100 flex-column ">
+  <v-container fluid class="ma-0 pa-0 fill-height w-100 flex-column">
     <div class="border-b-thin w-100">
       <InstructorQuizHeader v-model="quiz.title" @save="saveQuiz" @cancel="cancelQuiz" />
     </div>
     <v-container fluid class="ma-0 pa-0 flex-fill d-flex align-center justify-center">
-      <v-container class="ma-0 pa-0 fill-height w-33 border-e-thin">
-        <InstructorQuizQuestionList :questions="quiz.questions" :highlighted-question-index="currentQuestionIndexOnEdit"
+      <v-container fluid class="ma-0 pa-0 fill-height d-flex flex-column w-33 border-e-thin">
+        <InstructorQuizQuestionList ref="questionListRef" class="w-100 flex-grow-1 overflow-y-auto quiz-list"
+          :questions="quiz.questions" :highlighted-question-index="currentQuestionIndexOnEdit"
           @question-select="selectQuestion" @quesion-remove="removeQuestion" />
+        <v-container class="ma-0 pa-0 py-4 mt-auto d-flex align-center justify-center">
+          <v-btn color="primary" @click.stop="addQuestion">Adicionar pergunta</v-btn>
+        </v-container>
       </v-container>
       <InstructorQuizQuestion class="pa-16" v-model="quiz.questions[currentQuestionIndexOnEdit]" />
     </v-container>
   </v-container>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="sass" scoped>
+.quiz-list
+  --quiz-header-height: 100px
+  --add-question-btn-height: 68px
+  max-height: calc(100vh - (var(--quiz-header-height) + var(--add-question-btn-height)))
+</style>

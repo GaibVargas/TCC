@@ -14,7 +14,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <ul class="flex-fill fill-height">
+  <ul class="list">
     <li v-for="(question, index) in props.questions">
       <InstructorQuizQuestionListItem :question="question" :highlight="index === props.highlightedQuestionIndex"
         :key="question.id" @click.stop="emit('questionSelect', index)"
@@ -22,3 +22,8 @@ const emit = defineEmits<{
     </li>
   </ul>
 </template>
+
+<style lang="sass" scoped>
+.list
+  list-style: none
+</style>
