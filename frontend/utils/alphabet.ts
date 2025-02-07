@@ -25,4 +25,4 @@ export const alphabet = [
   "x",
   "y",
   "z",
-];
+]

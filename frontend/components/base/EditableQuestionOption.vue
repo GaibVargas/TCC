@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { QuestionOption } from '~/types/quiz';
+import type { QuestionOption } from '~/types/quiz'
 
 interface Props {
   id?: string
