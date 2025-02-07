@@ -5,5 +5,5 @@ export default function authRoutes(
   fastify: FastifyInstance,
   _options: unknown,
 ): void {
-  fastify.post('/refresh', authController.refreshToken)
+  fastify.get('/refresh', authController.refreshToken)
 }

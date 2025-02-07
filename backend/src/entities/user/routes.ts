@@ -8,4 +8,5 @@ export default function userRoutes(
 ): void {
   fastify.register(authenticationPlugin)
   fastify.get('/login', { config: { skipAuth: true } }, userControllers.loginUser)
+  fastify.get('/me', userControllers.getUser)
 }
