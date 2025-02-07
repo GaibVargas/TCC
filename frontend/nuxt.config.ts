@@ -15,7 +15,13 @@ export default defineNuxtConfig({
         config.plugins.push(vuetify({ autoImport: true }))
       })
     },
+    '@pinia/nuxt',
   ],
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL,
+    },
+  },
   vite: {
     vue: {
       template: {
