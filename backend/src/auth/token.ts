@@ -22,6 +22,12 @@ export function generateUserRefreshToken(user: MinUser): string {
   })
 }
 
+export function generateUserAuthToken(user: MinUser): string {
+  return generateToken(user, config.auth.AUTH_TOKEN_SECRET, {
+    expiresIn: config.auth.AUTH_TOKEN_EXPIRATION,
+  })
+}
+
 interface VerifyTokenValidResult {
   valid: true
   decoded: JwtPayload | string

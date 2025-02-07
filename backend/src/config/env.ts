@@ -16,6 +16,7 @@ const hostSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
   LTI_REDIRECT_URL: z.string().url(),
+  FRONTEND_URL: z.string().url(),
 })
 
 const dbSchema = z.object({
@@ -37,6 +38,8 @@ const authSchema = z.object({
   ACCESS_TOKEN_EXPIRATION: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_EXPIRATION: z.string(),
+  AUTH_TOKEN_SECRET: z.string(),
+  AUTH_TOKEN_EXPIRATION: z.string(),
 })
 
 const envSchema = z.object({
@@ -50,6 +53,7 @@ const parsedEnv = envSchema.safeParse({
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
     LTI_REDIRECT_URL: process.env.LTI_REDIRECT_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
   },
   db: {
     POSTGRES_USER: process.env.POSTGRES_USER,
@@ -64,6 +68,8 @@ const parsedEnv = envSchema.safeParse({
     ACCESS_TOKEN_EXPIRATION: process.env.ACCESS_TOKEN_EXPIRATION,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXPIRATION: process.env.REFRESH_TOKEN_EXPIRATION,
+    AUTH_TOKEN_SECRET: process.env.AUTH_TOKEN_SECRET,
+    AUTH_TOKEN_EXPIRATION: process.env.AUTH_TOKEN_EXPIRATION,
   },
 })
 

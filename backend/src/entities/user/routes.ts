@@ -1,15 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { authenticationPlugin } from '../../auth/plugin'
+import userControllers from './controllers'
 
 export default function userRoutes(
   fastify: FastifyInstance,
   _options: unknown,
 ): void {
   fastify.register(authenticationPlugin)
-  fastify.get('/protected', (_req, _res) => {
-    return { msg: 'protected accessed' }
-  })
-  fastify.get('/public', { config: { skipAuth: true } }, (_req, _res) => {
-    return { msg: 'public accessed' }
-  })
+  fastify.get('/login', { config: { skipAuth: true } }, userControllers.loginUser)
 }

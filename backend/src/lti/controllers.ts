@@ -1,10 +1,10 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { LTIServices } from './services'
 import {
-  LoggedUserTokens,
-  loginUser,
+  getUserAuthToken,
   updateOrCreateUser,
 } from '../entities/user/services'
+import { config } from '../config/env'
 
 export default class LTIControllers {
   private ltiService: LTIServices
@@ -20,10 +20,11 @@ export default class LTIControllers {
 
   async login(
     req: FastifyRequest,
-    _res: FastifyReply,
-  ): Promise<LoggedUserTokens> {
+    res: FastifyReply,
+  ): Promise<void> {
     const ltiUser = await this.ltiService.getUser(req.body)
     const user = await updateOrCreateUser(ltiUser)
-    return await loginUser(user)
+    const auth_token = getUserAuthToken(user)
+    res.redirect(`${config.host.FRONTEND_URL}/${auth_token}`)
   }
 }

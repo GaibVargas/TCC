@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import { z } from 'zod'
 import fastifyFormbody from '@fastify/formbody'
+import cors from '@fastify/cors'
 import { Prisma } from '@prisma/client'
 import { config } from './config/env'
 import ltiRoutes from './lti/routes'
@@ -15,6 +16,9 @@ const server = Fastify({
 })
 
 server.register(fastifyFormbody)
+server.register(cors, {
+  origin: 'http://localhost:3000'
+})
 
 const prismaErrors = [
   Prisma.PrismaClientKnownRequestError,

@@ -1,11 +1,16 @@
 import {
   generateUserAccessToken,
+  generateUserAuthToken,
   generateUserRefreshToken,
+  verifyToken,
 } from '../../auth/token'
+import { config } from '../../config/env'
+import HttpRequestError from '../../utils/error'
 import userModel from './model'
 import {
   CreateUserPayload,
   MinUser,
+  minUserSchema,
   Roles,
   rolesSchema,
   UserRoles,
@@ -84,12 +89,24 @@ export async function updateOrCreateUser(
   return updateUser(user)
 }
 
+export function getUserAuthToken(user: MinUser): string {
+  return generateUserAuthToken(user)
+}
+
 export type LoggedUserTokens = {
   access_token: string
   refresh_token: string
 }
 
-export async function loginUser(user: MinUser): Promise<LoggedUserTokens> {
+export async function loginUser(auth_token: string): Promise<LoggedUserTokens> {
+  const token = verifyToken(auth_token, config.auth.AUTH_TOKEN_SECRET)
+  if (!token.valid) {
+    throw new HttpRequestError({
+      status_code: 401,
+      message: 'Unauthorized'
+    })
+  }
+  const user = minUserSchema.parse(token.decoded)
   const access_token = generateUserAccessToken(user)
   const refresh_token = generateUserRefreshToken(user)
   await userModel.updateUserRefreshTokenByPublicId(
@@ -101,3 +118,13 @@ export async function loginUser(user: MinUser): Promise<LoggedUserTokens> {
     refresh_token,
   }
 }
+
+const userServices = {
+  getValidatedUserRole,
+  getUserRole,
+  updateOrCreateUser,
+  getUserAuthToken,
+  loginUser,
+}
+
+export default userServices

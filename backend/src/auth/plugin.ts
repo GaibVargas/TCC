@@ -1,7 +1,7 @@
 import { FastifyPluginCallback } from 'fastify'
 import { verifyToken } from './token'
 import { config } from '../config/env'
-import { MinUser, UserRoles } from '../entities/user/type'
+import { minUserSchema, UserRoles } from '../entities/user/type'
 import fastifyPlugin from 'fastify-plugin'
 
 const authenticationPluginCb: FastifyPluginCallback = (fastify, _opts, done) => {
@@ -20,7 +20,7 @@ const authenticationPluginCb: FastifyPluginCallback = (fastify, _opts, done) => 
     if (!token.valid) {
       return reply.status(401).send({ message: token.error })
     }
-    return (req.user = token.decoded as MinUser)
+    return req.user = minUserSchema.parse(token.decoded)
   })
   done()
 }
