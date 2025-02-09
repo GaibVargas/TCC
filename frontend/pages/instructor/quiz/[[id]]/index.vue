@@ -103,7 +103,8 @@ function saveQuiz() {
 }
 
 function cancelQuiz() {
-  console.log('cancel')
+  const router = useRouter()
+  router.back()
 }
 </script>
 
