@@ -15,7 +15,7 @@ const emit = defineEmits<{
         class="quiz-title font-weight-black" autocomplete="off" v-model="modelValue"></v-text-field>
       <div class="btns">
         <v-btn color="primary" class="mr-2" @click="emit('save')">Salvar</v-btn>
-        <v-btn @click="emit('cancel')">Sair</v-btn>
+        <v-btn @click="emit('cancel')">Cancelar</v-btn>
       </div>
     </v-row>
   </v-container>

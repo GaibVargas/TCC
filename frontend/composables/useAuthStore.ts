@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', {
       this.access_token = ''
       this.refresh_token = ''
     },
-    async refreshToken() {
+    async refreshToken(): Promise<boolean> {
       try {
         const config = useRuntimeConfig()
         const headers = useApiRequestHeaders()
@@ -27,10 +27,12 @@ export const useAuthStore = defineStore('auth', {
         })
         this.setAccessToken(data.access_token)
         this.setRefreshToken(data.refresh_token)
+        return true
       } catch (error) {
         console.error('Error refreshing access token', error)
         this.logout()
         navigateTo('/')
+        return false
       }
     },
   },

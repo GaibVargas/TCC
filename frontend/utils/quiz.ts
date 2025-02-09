@@ -1,59 +1,48 @@
-import { QuestionType, type Question, type Quiz } from '~/types/quiz'
+import {
+  QuestionType,
+  type Question,
+  type QuestionOption,
+  type Quiz,
+} from "~/types/quiz"
 
 export const questionTypeTranslation = {
-  [QuestionType.MULTI_CHOICE]: 'Múltipla escolha',
-  [QuestionType.TEXT]: 'Texto',
-  [QuestionType.TRUE_OR_FALSE]: 'Verdadeiro e falso',
+  [QuestionType.MULTI_CHOICE]: "Múltipla escolha",
+  [QuestionType.TEXT]: "Texto",
+  [QuestionType.TRUE_OR_FALSE]: "Verdadeiro e falso",
+}
+
+export function baseOption(description?: string): QuestionOption {
+  return {
+    id: unique_id(),
+    description: description ?? "",
+    is_correct_answer: false,
+  }
 }
 
 export function baseQuestion(): Question {
   return {
     id: unique_id(),
     type: QuestionType.MULTI_CHOICE,
-    description: '',
+    description: "",
     time_limit: null,
-    correct_text_answer: '',
+    correct_text_answer: "",
     options: [],
     multi_choice_options: [
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: '',
-        is_correct_answer: false,
-      },
+      baseOption(),
+      baseOption(),
+      baseOption(),
+      baseOption(),
     ],
     true_or_false_options: [
-      {
-        id: unique_id(),
-        description: 'Verdadeiro',
-        is_correct_answer: false,
-      },
-      {
-        id: unique_id(),
-        description: 'Falso',
-        is_correct_answer: false,
-      },
-    ]
+      baseOption("Verdadeiro"),
+      baseOption("Falso"),
+    ],
   }
 }
 
 export function baseQuiz(): Quiz {
   return {
-    title: '',
-    questions: [baseQuestion()]
+    title: "",
+    questions: [baseQuestion()],
   }
 }

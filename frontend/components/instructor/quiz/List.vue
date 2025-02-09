@@ -9,7 +9,7 @@ const props = defineProps<Props>()
 
 <template>
   <ul class="flex-fill list">
-    <li v-for="quizz in props.quizzes" :key="quizz.public_id">
+    <li v-for="quizz in props.quizzes" :key="quizz.public_id" class="mb-2">
       <InstructorQuizListItem :quiz="quizz" :key="quizz.public_id" />
     </li>
   </ul>

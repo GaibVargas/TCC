@@ -1,5 +1,7 @@
 import { useApiRequestHeaders } from "./useApiRequestHeaders"
 
+let refreshPromise: (() => Promise<boolean>) | null = null
+
 export const useApiUseFetch = async <T>(path: string, options?: any) => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBaseUrl
@@ -9,7 +11,7 @@ export const useApiUseFetch = async <T>(path: string, options?: any) => {
   const fetchResult = useFetch<T>(path, {
     baseURL,
     ...options,
-    async onRequest({ options, request }) {
+    async onRequest({ options }) {
       const headers = useApiRequestHeaders()
       options.headers = {
         ...options.headers,
@@ -17,18 +19,17 @@ export const useApiUseFetch = async <T>(path: string, options?: any) => {
       }
     },
     async onResponseError({ response }) {
-      if (response.status === 401 && response._data.message === 'Token has expired' && !authStore.is_refreshing) {
-        try {
-          authStore.setIsRefreshing(true)
-          await authStore.refreshToken()
-          await fetchResult.refresh()
-        } catch (refreshError) {
-          console.error('Error refreshing token', refreshError)
-          authStore.logout()
-          navigateTo("/")
-        } finally {
-          authStore.setIsRefreshing(false)
-        }
+      if (
+        response.status === 401 &&
+        response._data.message === "Token has expired" &&
+        !refreshPromise
+      ) {
+        refreshPromise = authStore.refreshToken
+      }
+      if (refreshPromise) {
+        const is_successful = await refreshPromise()
+        if (!is_successful) return
+        await fetchResult.refresh()
       }
     },
   })

@@ -1,4 +1,4 @@
-let refreshPromise: Promise<void> | null = null
+let refreshPromise: (() => Promise<boolean>) | null = null
 
 export const useApiFetch = async <T>(path: string, options?: any) => {
   const config = useRuntimeConfig()
@@ -20,16 +20,10 @@ export const useApiFetch = async <T>(path: string, options?: any) => {
       error.response?._data?.message === 'Token has expired'
     ) {
       if (!refreshPromise) {
-        refreshPromise = (async () => {
-          try {
-            console.log('refreshPromise')
-            await authStore.refreshToken()
-          } finally {
-            refreshPromise = null
-          }
-        })()
+        refreshPromise = authStore.refreshToken
       }
-      await refreshPromise
+      const is_successful = await refreshPromise()
+      if (!is_successful) return
       const newHeaders = useApiRequestHeaders()
       return await $fetch<T>(path, {
         baseURL,

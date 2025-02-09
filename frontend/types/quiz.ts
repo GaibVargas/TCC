@@ -1,37 +1,47 @@
 export enum QuestionType {
-  MULTI_CHOICE = 'multi_choice',
-  TRUE_OR_FALSE = 'true_or_false',
-  TEXT = 'text',
+  MULTI_CHOICE = "multi_choice",
+  TRUE_OR_FALSE = "true_or_false",
+  TEXT = "text",
 }
 
-export type QuestionOption = {
-  public_id?: string
-  id: string // Para fins de renderização
+interface PublicId {
+  public_id: string
+}
+
+export interface QuestionOption {
+  id: string
   description: string
   is_correct_answer: boolean
 }
+export interface QuestionOptionPayload extends PublicId, QuestionOption {}
 
-export type Question = {
-  public_id?: string
-  id: string // Para fins de renderização
+export interface QuestionGeneric<OptionT> {
+  id: string
   type: QuestionType
   description: string
-  time_limit: number | null 
+  time_limit: number | null
   correct_text_answer: string
-  options: QuestionOption[]
+  options: OptionT[]
 
-  multi_choice_options: QuestionOption[]
-  true_or_false_options: QuestionOption[]
+  multi_choice_options: OptionT[]
+  true_or_false_options: OptionT[]
 }
+export interface Question extends QuestionGeneric<QuestionOption> {}
+export interface QuestionPayload
+  extends PublicId,
+    Omit<
+      QuestionGeneric<QuestionOptionPayload>,
+      "multi_choice_options" | "true_or_false_options"
+    > {}
 
-export type Quiz = {
-  public_id?: string
+export interface QuizGeneric<QuestionT> {
   title: string
-  questions: Question[]
-  createdAt?: Date
+  questions: QuestionT[]
 }
+export interface Quiz extends QuizGeneric<Question> {}
+export interface QuizPayload extends PublicId, QuizGeneric<QuestionPayload> {}
 
-export type QuizResume = {
+export interface QuizResume {
   public_id: string
   title: string
   n_questions: number
