@@ -23,6 +23,7 @@ export const useApiUseFetch = async <T>(path: string, options?: any) => {
           await authStore.refreshToken()
           await fetchResult.refresh()
         } catch (refreshError) {
+          console.error('Error refreshing token', refreshError)
           authStore.logout()
           navigateTo("/")
         } finally {

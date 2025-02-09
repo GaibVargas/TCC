@@ -29,6 +29,8 @@ export const useAuthStore = defineStore('auth', {
         this.setRefreshToken(data.refresh_token)
       } catch (error) {
         console.error('Error refreshing access token', error)
+        this.logout()
+        navigateTo('/')
       }
     },
   },

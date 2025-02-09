@@ -30,3 +30,10 @@ export type Quiz = {
   questions: Question[]
   createdAt?: Date
 }
+
+export type QuizResume = {
+  public_id: string
+  title: string
+  n_questions: number
+  can_open_session: boolean
+}

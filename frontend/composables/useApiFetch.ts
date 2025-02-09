@@ -22,6 +22,7 @@ export const useApiFetch = async <T>(path: string, options?: any) => {
       if (!refreshPromise) {
         refreshPromise = (async () => {
           try {
+            console.log('refreshPromise')
             await authStore.refreshToken()
           } finally {
             refreshPromise = null
