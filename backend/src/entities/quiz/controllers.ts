@@ -1,7 +1,8 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import quizServices from './services'
-import { create_quiz_schema, Quiz, update_quiz_schema } from './type'
+import { create_quiz_schema, Quiz, QuizResume, update_quiz_schema } from './type'
 import { userVerify } from '../../auth/services'
+import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
 
 export async function createQuiz(
   req: FastifyRequest,
@@ -44,11 +45,11 @@ export async function deleteQuiz(
 }
 
 export async function getQuizzesByAuthor(
-  req: FastifyRequest,
+  req: FastifyRequest<{ Querystring: PaginationQuery }>,
   _reply: FastifyReply,
-): Promise<Quiz[]> {
+): Promise<Paginated<QuizResume[]>> {
   userVerify(req.user)
-  return await quizServices.getQuizzesByAuthor(req.user.public_id)
+  return await quizServices.getQuizzesByAuthor(req.user.public_id, pagination_query_schema.parse(req.query))
 }
 
 const quizController = {

@@ -3,7 +3,16 @@ import prisma from '../../config/db'
 import HttpRequestError from '../../utils/error'
 import userModel from '../user/model'
 import { MinUser } from '../user/type'
-import { CreateQuizPayload, Quiz, quiz_schema, UpdateQuizPayload } from './type'
+import {
+  CreateQuizPayload,
+  QuestionType,
+  Quiz,
+  quiz_resume_schema,
+  quiz_schema,
+  QuizResume,
+  UpdateQuizPayload,
+} from './type'
+import { getPrismaPagination, Paginated, PaginationQuery } from '../../common/pagination'
 
 export async function createQuiz(
   user: MinUser,
@@ -143,7 +152,7 @@ export async function findQuizByPublicIdAndUpdate(
       if (!new_options.length) continue
       const question_id = await tx.question.findUniqueOrThrow({
         where: { public_id: cur_question.public_id },
-        select: { id: true }
+        select: { id: true },
       })
       for (const new_option of new_options) {
         await tx.questionOption.create({
@@ -151,18 +160,22 @@ export async function findQuizByPublicIdAndUpdate(
             question_id: question_id.id,
             description: new_option.description,
             is_correct_answer: new_option.is_correct_answer,
-          }
+          },
         })
       }
     }
 
     // Create new questions
-    const prev_questions_public_id = previous_quiz.questions.map(q => q.public_id)
-    const new_questions = quiz.questions.filter(q => !prev_questions_public_id.includes(q.public_id ?? ''))
+    const prev_questions_public_id = previous_quiz.questions.map(
+      (q) => q.public_id,
+    )
+    const new_questions = quiz.questions.filter(
+      (q) => !prev_questions_public_id.includes(q.public_id ?? ''),
+    )
     if (!new_questions.length) return
     const quiz_id = await tx.quiz.findUniqueOrThrow({
       where: { public_id },
-      select: { id: true }
+      select: { id: true },
     })
     for (const new_question of new_questions) {
       await tx.question.create({
@@ -178,7 +191,7 @@ export async function findQuizByPublicIdAndUpdate(
               is_correct_answer: option.is_correct_answer,
             })),
           },
-        }
+        },
       })
     }
   })
@@ -186,12 +199,14 @@ export async function findQuizByPublicIdAndUpdate(
   return current_quiz
 }
 
-export async function getQuizAuthorPublicId(public_id: string): Promise<string | null> {
+export async function getQuizAuthorPublicId(
+  public_id: string,
+): Promise<string | null> {
   const quiz = await prisma.quiz.findUnique({
     where: { public_id },
     include: {
-      author: true
-    }
+      author: true,
+    },
   })
   if (!quiz?.author) return null
   return quiz.author.public_id
@@ -200,28 +215,85 @@ export async function getQuizAuthorPublicId(public_id: string): Promise<string |
 export async function deleteQuizByPublicId(public_id: string): Promise<void> {
   await prisma.quiz.update({
     where: { public_id },
-    data: { is_deleted: true }
+    data: { is_deleted: true },
   })
 }
 
-export async function findQuizByAuthorId(author_id: number): Promise<Quiz[]> {
-  const quizzes = await prisma.quiz.findMany({
-    where: { author_id },
-    orderBy: { createdAt: 'desc' },
-    include: {
-      questions: {
-        where: { is_deleted: false },
-        orderBy: { id: 'asc' },
-        include: {
-          options: {
-            where: { is_deleted: false },
-            orderBy: { id: 'asc' },
+function canOpenSessionForQuiz(quiz: Quiz): boolean {
+  if (!quiz.title.length) return false
+  for (const question of quiz.questions) {
+    if (!question.description.length) return false
+    if (
+      question.type === QuestionType.TEXT &&
+      !question.correct_text_answer.length
+    )
+      return false
+    if (
+      (question.type === QuestionType.MULTI_CHOICE ||
+        question.type === QuestionType.TRUE_OR_FALSE) &&
+      !question.options.length
+    )
+      return false
+
+    const is_there_correct_answer = question.options.some(
+      (o) => o.is_correct_answer,
+    )
+    const are_all_options_with_description = question.options.every(
+      (o) => o.description.length,
+    )
+    if (
+      (question.type === QuestionType.MULTI_CHOICE ||
+        question.type === QuestionType.TRUE_OR_FALSE) &&
+      (!is_there_correct_answer || !are_all_options_with_description)
+    )
+      return false
+  }
+  return true
+}
+
+function getQuizResume(quiz: Quiz): QuizResume {
+  return {
+    public_id: quiz.public_id,
+    title: quiz.title,
+    n_questions: quiz.questions.length,
+    can_open_session: canOpenSessionForQuiz(quiz),
+  }
+}
+
+export async function findQuizResumesByAuthorId(
+  author_id: number,
+  query: PaginationQuery,
+): Promise<Paginated<QuizResume[]>> {
+  const [quizzes, count] = await prisma.$transaction([
+    prisma.quiz.findMany({
+      where: { author_id },
+      orderBy: { createdAt: 'desc' },
+      ...getPrismaPagination(query),
+      include: {
+        questions: {
+          where: { is_deleted: false },
+          orderBy: { id: 'asc' },
+          include: {
+            options: {
+              where: { is_deleted: false },
+              orderBy: { id: 'asc' },
+            },
           },
         },
       },
-    },
-  })
-  return z.array(quiz_schema).parse(quizzes)
+    }),
+    prisma.quiz.count({
+      where: { author_id },
+    })
+  ])
+  const formatted_quizzes = z
+    .array(quiz_schema)
+    .parse(quizzes)
+    .map((q) => getQuizResume(q))
+  return {
+    items: z.array(quiz_resume_schema).parse(formatted_quizzes),
+    count,
+  }
 }
 
 const quizModel = {
@@ -230,7 +302,7 @@ const quizModel = {
   findQuizByPublicIdAndUpdate,
   getQuizAuthorPublicId,
   deleteQuizByPublicId,
-  findQuizByAuthorId,
+  findQuizResumesByAuthorId,
 }
 
 export default quizModel

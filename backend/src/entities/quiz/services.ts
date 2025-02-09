@@ -1,8 +1,9 @@
+import { Paginated, PaginationQuery } from '../../common/pagination'
 import HttpRequestError from '../../utils/error'
 import userModel from '../user/model'
 import { MinUser } from '../user/type'
 import quizModel from './model'
-import { CreateQuizPayload, Quiz, UpdateQuizPayload } from './type'
+import { CreateQuizPayload, Quiz, QuizResume, UpdateQuizPayload } from './type'
 
 export async function createQuiz(user: MinUser, quiz: CreateQuizPayload): Promise<Quiz> {
   return await quizModel.createQuiz(user, quiz)
@@ -30,9 +31,9 @@ export async function deleteQuiz(public_id: string): Promise<void> {
   await quizModel.deleteQuizByPublicId(public_id)
 }
 
-export async function getQuizzesByAuthor(user_public_id: string): Promise<Quiz[]> {
+export async function getQuizzesByAuthor(user_public_id: string, query: PaginationQuery): Promise<Paginated<QuizResume[]>> {
   const user_id = await userModel.getUserIdByPublicId(user_public_id)
-  return await quizModel.findQuizByAuthorId(user_id)
+  return await quizModel.findQuizResumesByAuthorId(user_id, query)
 }
 
 const quizServices = {

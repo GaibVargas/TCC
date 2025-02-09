@@ -46,7 +46,14 @@ export const update_quiz_schema = create_quiz_schema.extend({
   public_id: z.string().uuid().optional(),
   questions: z.array(update_question_schema),
 })
+export const quiz_resume_schema = z.object({
+  public_id: z.string().uuid(),
+  title: z.string(),
+  n_questions: z.number().int(),
+  can_open_session: z.boolean(),
+})
 
 export type CreateQuizPayload = z.infer<typeof create_quiz_schema>
 export type UpdateQuizPayload = z.infer<typeof update_quiz_schema>
 export type Quiz = z.infer<typeof quiz_schema>
+export type QuizResume = z.infer<typeof quiz_resume_schema>
