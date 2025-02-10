@@ -97,9 +97,19 @@ function formatQuizToSave(quiz: Quiz): Quiz {
   }
 }
 
-function saveQuiz() {
-  const formattedQuiz = formatQuizToSave(quiz)
-  console.log(formattedQuiz)
+const loading_save = ref(false)
+async function saveQuiz() {
+  try {
+    loading_save.value = true
+    const formattedQuiz = formatQuizToSave(quiz)
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    console.log(formattedQuiz)
+    useNuxtApp().$toast.error("Iooo")
+  } catch (error) {
+    
+  } finally {
+    loading_save.value = false
+  }
 }
 
 function cancelQuiz() {
@@ -121,7 +131,7 @@ function cancelQuiz() {
   </v-container>
   <v-container v-else fluid class="ma-0 pa-0 fill-height w-100 flex-column">
     <div class="border-b-thin w-100">
-      <InstructorQuizHeader v-model="quiz.title" @save="saveQuiz" @cancel="cancelQuiz" />
+      <InstructorQuizHeader v-model="quiz.title" :loading="loading_save" @save="saveQuiz" @cancel="cancelQuiz" />
     </div>
     <v-container fluid class="ma-0 pa-0 flex-fill d-flex align-center justify-center">
       <v-container fluid class="ma-0 pa-0 fill-height d-flex flex-column w-33 border-e-thin">
