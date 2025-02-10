@@ -29,23 +29,23 @@ const timeOptions = [
       <v-col class="ma-0 pa-0 mr-4">
         <v-select label="Tipo de pergunta" variant="outlined" :hide-details="true" :items="questionOptions"
           :model-value="modelValue.type"
-          @update:model-value="v => emit('update:modelValue', { ...modelValue, type: v })"></v-select>
+          @update:model-value="(v: string) => emit('update:modelValue', { ...modelValue, type: v })"></v-select>
       </v-col>
       <v-col class="ma-0 pa-0">
         <v-select label="Tempo de pergunta" variant="outlined" :hide-details="true" :items="timeOptions"
           :model-value="modelValue.time_limit"
-          @update:model-value="v => emit('update:modelValue', { ...modelValue, time_limit: v })"></v-select>
+          @update:model-value="(v: number | null) => emit('update:modelValue', { ...modelValue, time_limit: v })"></v-select>
       </v-col>
     </v-row>
     <v-row class="ma-0 pa-0 mb-14">
       <v-textarea label="Texto da pergunta" variant="outlined" rows="3" no-resize :hide-details="true"
         :model-value="modelValue.description"
-        @update:model-value="v => emit('update:modelValue', { ...modelValue, description: v })"></v-textarea>
+        @update:model-value="(v: string) => emit('update:modelValue', { ...modelValue, description: v })"></v-textarea>
     </v-row>
     <v-row class="ma-0 pa-0">
       <v-text-field v-if="modelValue.type === QuestionType.TEXT" label="Resposta correta" variant="outlined"
         :model-value="modelValue.correct_text_answer"
-        @update:model-value="v => emit('update:modelValue', { ...modelValue, correct_text_answer: v })"></v-text-field>
+        @update:model-value="(v: string) => emit('update:modelValue', { ...modelValue, correct_text_answer: v })"></v-text-field>
       <v-col cols="6" class="ma-0 pa-0" :class="[index % 2 === 0 ? 'pr-2' : 'pl-2']" v-else-if="modelValue.type === QuestionType.TRUE_OR_FALSE"
         v-for="(option, index) in modelValue.true_or_false_options">
         <BaseEditableQuestionOption v-model="modelValue.true_or_false_options[index]" :key="option.id" :id="option.id" :prepend="`${alphabet[index]}.`" />

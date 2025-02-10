@@ -8,7 +8,6 @@ const currentQuestionIndexOnEdit = ref(0)
 
 const route = useRoute()
 const { id } = route.params
-const is_edit = computed(() => !!id)
 
 const edit_response = ref<{
   data: Ref<QuizPayload | null>
@@ -49,7 +48,7 @@ function formatQuizToEdit(payload: QuizPayload) {
           baseOption(),
           baseOption(),
         ],
-      true_or_false_options: q.type === QuestionType.TEXT
+      true_or_false_options: q.type === QuestionType.TRUE_OR_FALSE
         ? options
         : [baseOption("Verdadeiro"), baseOption("Falso")]
     }
@@ -97,16 +96,22 @@ function formatQuizToSave(quiz: Quiz): Quiz {
   }
 }
 
+const is_edit = computed(() => !!id)
 const loading_save = ref(false)
 async function saveQuiz() {
   try {
     loading_save.value = true
     const formattedQuiz = formatQuizToSave(quiz)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    console.log(formattedQuiz)
-    useNuxtApp().$toast.error("Iooo")
+    let save_url = '/quiz'
+    if (is_edit.value) save_url += `/${id}`
+    await useApiFetch(`/quiz/${id}`, {
+      method: 'POST',
+      body: formattedQuiz,
+    })
+    useNuxtApp().$toast.success('Quiz salvo com sucesso.')
   } catch (error) {
-    
+    console.error(error)
+    useNuxtApp().$toast.error('Erro ao salvar quiz. Tente novamente mais tarde.')
   } finally {
     loading_save.value = false
   }
