@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import prisma from '../../config/db'
-import HttpRequestError from '../../utils/error'
 import userModel from '../user/model'
 import { MinUser } from '../user/type'
 import {
@@ -38,6 +37,11 @@ export async function createQuiz(
         })),
       },
     },
+    include: {
+      questions: {
+        include: { options: true }
+      }
+    }
   })
   return quiz_schema.parse(quizDb)
 }
@@ -65,11 +69,6 @@ export async function findQuizByPublicIdAndUpdate(
   public_id: string,
   quiz: UpdateQuizPayload,
 ): Promise<Quiz> {
-  if (public_id !== quiz.public_id)
-    throw new HttpRequestError({
-      status_code: 400,
-      message: 'Id must be equal to quiz.public_id',
-    })
   const previous_quiz = await findQuizByPublicId(public_id)
   await prisma.$transaction(async (tx) => {
     // Update Quiz
