@@ -266,7 +266,7 @@ export async function findQuizResumesByAuthorId(
   const [quizzes, count] = await prisma.$transaction([
     prisma.quiz.findMany({
       where: { author_id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
       ...getPrismaPagination(query),
       include: {
         questions: {
