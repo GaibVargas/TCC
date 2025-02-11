@@ -1,7 +1,14 @@
 import { defineNuxtPlugin } from "#app"
-import { toast } from "vue3-toastify"
+import Vue3Toastify, { toast, type ToastContainerOptions } from "vue3-toastify"
 import "vue3-toastify/dist/index.css"
 
 export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.provide("toast", toast)
+  nuxtApp.vueApp.use(Vue3Toastify, {
+    autoClose: 2000,
+    clearOnUrlChange: false,
+  } as ToastContainerOptions)
+
+  return {
+    provide: { toast },
+  }
 })
