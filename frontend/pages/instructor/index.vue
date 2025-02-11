@@ -1,12 +1,7 @@
 <script lang="ts" setup>
-import type { Paginated } from '~/types/pagination';
-import type { QuizResume } from '~/types/quiz';
-
 definePageMeta({
   middleware: 'is-instructor'
 })
-
-const { data, status } = await useApiUseFetch<Paginated<QuizResume[]>>('/quiz', { lazy: true })
 </script>
 
 <template>
@@ -18,15 +13,7 @@ const { data, status } = await useApiUseFetch<Paginated<QuizResume[]>>('/quiz', 
       </v-btn>
     </v-row>
     <v-row class="ma-0 pa-0">
-      <v-alert variant="outlined" v-if="status === 'pending' || status === 'idle'">
-        <p>
-          <v-progress-circular color="primary" indeterminate size="20" class="mr-4"></v-progress-circular>
-          Buscando quizzes...
-        </p>
-      </v-alert>
-      <v-alert v-else-if="status === 'error'" color="error">Erro ao buscar seus quizzes.</v-alert>
-      <v-alert v-else-if="status === 'success' && !data?.items.length">Você não possui quizzes criados.</v-alert>
-      <InstructorQuizList v-else-if="data" :quizzes="data.items" />
+      <InstructorQuizList />
     </v-row>
   </v-container>
 </template>

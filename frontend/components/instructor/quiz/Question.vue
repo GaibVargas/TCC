@@ -29,7 +29,7 @@ const timeOptions = [
       <v-col class="ma-0 pa-0 mr-4">
         <v-select label="Tipo de pergunta" variant="outlined" :hide-details="true" :items="questionOptions"
           :model-value="modelValue.type"
-          @update:model-value="(v: string) => emit('update:modelValue', { ...modelValue, type: v })"></v-select>
+          @update:model-value="(v: QuestionType) => emit('update:modelValue', { ...modelValue, type: v })"></v-select>
       </v-col>
       <v-col class="ma-0 pa-0">
         <v-select label="Tempo de pergunta" variant="outlined" :hide-details="true" :items="timeOptions"

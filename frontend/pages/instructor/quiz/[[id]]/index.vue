@@ -108,7 +108,8 @@ async function saveQuiz() {
       method: 'POST',
       body: formattedQuiz,
     })
-    useNuxtApp().$toast.success('Quiz salvo com sucesso.')
+    useNuxtApp().$toast.success('Quiz salvo!')
+    navigateTo('/instructor')
   } catch (error) {
     console.error(error)
     useNuxtApp().$toast.error('Erro ao salvar quiz. Tente novamente mais tarde.')

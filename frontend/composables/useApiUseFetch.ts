@@ -28,6 +28,7 @@ export const useApiUseFetch = async <T>(path: string, options?: any) => {
       }
       if (refreshPromise) {
         const is_successful = await refreshPromise()
+        refreshPromise = null
         if (!is_successful) return
         await fetchResult.refresh()
       }

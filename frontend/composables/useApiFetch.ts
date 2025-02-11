@@ -23,6 +23,7 @@ export const useApiFetch = async <T>(path: string, options?: any) => {
         refreshPromise = authStore.refreshToken
       }
       const is_successful = await refreshPromise()
+      refreshPromise = null
       if (!is_successful) return
       const newHeaders = useApiRequestHeaders()
       return await $fetch<T>(path, {
