@@ -16,9 +16,9 @@ import { getPrismaPagination, Paginated, PaginationQuery } from '../../common/pa
 export async function createQuiz(
   user: MinUser,
   quiz: CreateQuizPayload,
-): Promise<Quiz> {
+): Promise<Quiz | null> {
   const author_id = await userModel.getUserIdByPublicId(user.public_id)
-  const quizDb = await prisma.quiz.create({
+  const quiz_db = await prisma.quiz.create({
     data: {
       title: quiz.title,
       author: { connect: { id: author_id } },
@@ -43,12 +43,14 @@ export async function createQuiz(
       }
     }
   })
-  return quiz_schema.parse(quizDb)
+  const parsed_quiz = quiz_schema.safeParse(quiz_db)
+  if (parsed_quiz.error) return null
+  return parsed_quiz.data
 }
 
-export async function findQuizByPublicId(public_id: string): Promise<Quiz> {
-  const quizDb = await prisma.quiz.findUnique({
-    where: { public_id },
+export async function findQuizByPublicId(public_id: string): Promise<Quiz | null> {
+  const quiz_db = await prisma.quiz.findUnique({
+    where: { public_id, is_deleted: false },
     include: {
       questions: {
         where: { is_deleted: false },
@@ -62,14 +64,17 @@ export async function findQuizByPublicId(public_id: string): Promise<Quiz> {
       },
     },
   })
-  return quiz_schema.parse(quizDb)
+  const parsed_quiz = quiz_schema.safeParse(quiz_db)
+  if (parsed_quiz.error) return null
+  return parsed_quiz.data
 }
 
 export async function findQuizByPublicIdAndUpdate(
   public_id: string,
   quiz: UpdateQuizPayload,
-): Promise<Quiz> {
+): Promise<Quiz | null> {
   const previous_quiz = await findQuizByPublicId(public_id)
+  if (!previous_quiz) return null
   await prisma.$transaction(async (tx) => {
     // Update Quiz
     if (previous_quiz.title !== quiz.title) {
@@ -265,7 +270,7 @@ export async function findQuizResumesByAuthorId(
 ): Promise<Paginated<QuizResume[]>> {
   const [quizzes, count] = await prisma.$transaction([
     prisma.quiz.findMany({
-      where: { author_id },
+      where: { author_id, is_deleted: false },
       orderBy: { updatedAt: 'desc' },
       ...getPrismaPagination(query),
       include: {
