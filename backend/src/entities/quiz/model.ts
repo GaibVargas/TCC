@@ -287,7 +287,7 @@ export async function findQuizResumesByAuthorId(
       },
     }),
     prisma.quiz.count({
-      where: { author_id },
+      where: { author_id, is_deleted: false },
     })
   ])
   const formatted_quizzes = z
