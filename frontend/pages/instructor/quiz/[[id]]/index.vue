@@ -3,6 +3,10 @@ import type { AsyncDataRequestStatus } from '#app'
 import type { InstructorQuizQuestionList } from '#components'
 import { QuestionType, type QuestionOption, type Quiz, type QuizPayload } from '~/types/quiz'
 
+definePageMeta({
+  middleware: 'is-instructor'
+})
+
 const quiz: Quiz = reactive(baseQuiz())
 const currentQuestionIndexOnEdit = ref(0)
 

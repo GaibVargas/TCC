@@ -15,6 +15,7 @@ watch(data, async (newData) => {
     setRefreshToken(newData.refresh_token)
     try {
       const response = await useApiFetch<User>('/user/me')
+      if (!response) throw new Error('User not found')
       const user = useUser()
       user.setUser(response)
       if (user.role === UserRoles.INSTRUCTOR) navigateTo('/instructor')
