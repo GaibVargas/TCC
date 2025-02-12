@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Paginated } from '~/types/pagination'
 import type { QuizResume } from '~/types/quiz'
+import type { SessionTypes } from '~/types/session'
 
 const page_size = 10
 const page = ref(1)
@@ -10,7 +11,7 @@ const total_items = computed(() => {
 })
 const n_pages = computed(() => Math.ceil(total_items.value / page_size))
 
-const { data, status, refresh } = await useApiUseFetch<Paginated<QuizResume[]>>('/quiz', { 
+const { data, status, refresh } = await useApiUseFetch<Paginated<QuizResume[]>>('/quiz', {
   lazy: true,
   query: {
     page,
@@ -30,6 +31,44 @@ watch(page, async (_) => {
   await refresh()
   is_pagination_loading.value = false
 })
+
+const show_open_session_dialog = ref(false)
+const quiz_to_be_open = ref<QuizResume | null>(null)
+
+function showOpenSession(quiz_resume: QuizResume) {
+  quiz_to_be_open.value = quiz_resume
+  show_open_session_dialog.value = true
+}
+
+function hideOpenSession() {
+  show_open_session_dialog.value = false
+  quiz_to_be_open.value = null
+}
+
+const loading_open_session = ref(false)
+
+async function openSession(mode: SessionTypes | null) {
+  const toast = useNuxtApp().$toast
+  if (!quiz_to_be_open.value || !mode) {
+    hideOpenSession()
+    return
+  }
+  try {
+    loading_open_session.value = true
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    console.log('Open session for', quiz_to_be_open.value.public_id, mode)
+    hideOpenSession()
+  } catch (error) {
+    console.error(error)
+    toast.error('Erro ao criar sessão para o quiz. Tente novamente mais tarde.')
+  } finally {
+    loading_open_session.value = false
+  }
+}
+
+function cancelOpenSession() {
+  hideOpenSession()
+}
 </script>
 
 <template>
@@ -41,17 +80,24 @@ watch(page, async (_) => {
   </v-alert>
   <v-alert v-else-if="computed_status === 'error'" color="error">Erro ao buscar seus quizzes.</v-alert>
   <v-alert v-else-if="computed_status === 'success' && !data?.items?.length">Você não possui quizzes criados.</v-alert>
-  <v-container v-else-if="data"  fluid class="ma-0 pa-0">
+  <v-container v-else-if="data" fluid class="ma-0 pa-0">
     <ul class="flex-fill list">
       <li v-for="quizz in data.items" :key="quizz.public_id" class="mb-2">
-        <InstructorQuizListItem :quiz="quizz" :key="quizz.public_id" @remove="refresh" />
+        <InstructorQuizListItem :quiz="quizz" :key="quizz.public_id" @remove="refresh"
+          @open-session="showOpenSession(quizz)" />
       </li>
     </ul>
     <div class="d-flex align-center justify-center">
-      <v-pagination v-model="page" :length="n_pages" :disabled="is_pagination_loading" density="compact" total-visible="4"></v-pagination>
-      <v-progress-circular v-show="is_pagination_loading" color="primary" indeterminate size="20" class="ml-4"></v-progress-circular>
+      <v-pagination v-model="page" :length="n_pages" :disabled="is_pagination_loading" density="compact"
+        total-visible="4"></v-pagination>
+      <v-progress-circular v-show="is_pagination_loading" color="primary" indeterminate size="20"
+        class="ml-4"></v-progress-circular>
     </div>
   </v-container>
+  <v-dialog v-model="show_open_session_dialog" persistent>
+    <InstructorOpenSessionDialog v-if="quiz_to_be_open" :quiz-title="quiz_to_be_open?.title" :loading="loading_open_session"
+      @cancel="cancelOpenSession" @open="openSession" />
+  </v-dialog>
 </template>
 
 <style lang="sass" scoped>

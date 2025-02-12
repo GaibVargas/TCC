@@ -18,6 +18,7 @@ const quiz_n_questions_description = computed(() => {
 
 const emit = defineEmits<{
   (e: 'remove'): void
+  (e: 'open-session'): void
 }>()
 
 const remove_loading = ref(false)
@@ -45,10 +46,6 @@ async function removeQuiz() {
   }
 }
 
-function openQuizSession() {
-  console.log('Open session quiz', props.quiz.public_id)
-}
-
 function editQuiz() {
   if (remove_loading.value) return
   navigateTo(`/instructor/quiz/edit/${props.quiz.public_id}`)
@@ -64,7 +61,7 @@ function editQuiz() {
     </div>
     <div class="actions">
       <v-btn size="small" color="primary" flat v-if="props.quiz.can_open_session" class="mr-4"
-        :disabled="remove_loading" @click.stop="openQuizSession">Abrir seção</v-btn>
+        :disabled="remove_loading" @click.stop="emit('open-session')">Abrir seção</v-btn>
       <v-btn size="small" flat :loading="remove_loading" @click.stop="removeQuiz">
         <v-icon>mdi-delete</v-icon>
       </v-btn>
