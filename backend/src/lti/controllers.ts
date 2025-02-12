@@ -25,6 +25,6 @@ export default class LTIControllers {
     const ltiUser = await this.ltiService.getUser(req.body)
     const user = await updateOrCreateUser(ltiUser)
     const auth_token = getUserAuthToken(user)
-    res.redirect(`${config.host.FRONTEND_URL}/${auth_token}`)
+    res.redirect(`${config.host.FRONTEND_URL}/auth/${auth_token}`)
   }
 }
