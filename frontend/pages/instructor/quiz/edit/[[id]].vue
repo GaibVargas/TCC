@@ -4,7 +4,7 @@ import type { InstructorQuizQuestionList } from '#components'
 import { QuestionType, type QuestionOption, type Quiz, type QuizPayload } from '~/types/quiz'
 
 definePageMeta({
-  middleware: 'is-instructor'
+  middleware: 'is-instructor',
 })
 
 const quiz: Quiz = reactive(baseQuiz())
@@ -113,7 +113,7 @@ async function saveQuiz() {
       body: formattedQuiz,
     })
     useNuxtApp().$toast.success('Quiz salvo!')
-    navigateTo('/instructor')
+    navigateTo('/instructor/quiz')
   } catch (error) {
     console.error(error)
     useNuxtApp().$toast.error('Erro ao salvar quiz. Tente novamente mais tarde.')

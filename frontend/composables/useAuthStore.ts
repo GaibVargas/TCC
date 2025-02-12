@@ -16,6 +16,8 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.access_token = ''
       this.refresh_token = ''
+      const user = useUser()
+      user.$reset()
     },
     async refreshToken(): Promise<boolean> {
       try {

@@ -18,7 +18,7 @@ watch(data, async (newData) => {
       if (!response) throw new Error('User not found')
       const user = useUser()
       user.setUser(response)
-      if (user.role === UserRoles.INSTRUCTOR) navigateTo('/instructor')
+      if (user.role === UserRoles.INSTRUCTOR) navigateTo('/instructor/quiz')
       else navigateTo('/')
     } catch (error) {
       errorOnGetUser.value = true

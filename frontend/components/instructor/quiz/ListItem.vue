@@ -51,7 +51,7 @@ function openQuizSession() {
 
 function editQuiz() {
   if (remove_loading.value) return
-  navigateTo(`/instructor/quiz/${props.quiz.public_id}`)
+  navigateTo(`/instructor/quiz/edit/${props.quiz.public_id}`)
 }
 </script>
 
