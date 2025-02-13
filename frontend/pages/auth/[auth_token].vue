@@ -19,7 +19,7 @@ watch(data, async (newData) => {
       const user = useUser()
       user.setUser(response)
       if (user.role === UserRoles.INSTRUCTOR) navigateTo('/instructor/quiz')
-      else navigateTo('/')
+      else navigateTo('/session/entry')
     } catch (error) {
       errorOnGetUser.value = true
       console.error('Error getting user data', error)
