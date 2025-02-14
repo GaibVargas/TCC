@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Paginated } from '~/types/pagination'
 import type { QuizResume } from '~/types/quiz'
-import type { SessionTypes } from '~/types/session'
+import type { SessionCreatePayload, SessionModes } from '~/types/session'
 
 const page_size = 10
 const page = ref(1)
@@ -47,7 +47,7 @@ function hideOpenSession() {
 
 const loading_open_session = ref(false)
 
-async function openSession(mode: SessionTypes | null) {
+async function openSession(mode: SessionModes | null) {
   const toast = useNuxtApp().$toast
   if (!quiz_to_be_open.value || !mode) {
     hideOpenSession()
@@ -55,8 +55,20 @@ async function openSession(mode: SessionTypes | null) {
   }
   try {
     loading_open_session.value = true
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    console.log('Open session for', quiz_to_be_open.value.public_id, mode)
+    const session = await useApiFetch<SessionCreatePayload>('/session', {
+      method: 'POST',
+      body: {
+        mode,
+        quiz_public_id: quiz_to_be_open.value.public_id,
+      }
+    })
+    if (!session) {
+      toast.error('Erro ao criar sessão para o quiz. Tente novamente mais tarde.')
+      return
+    }
+    const session_store = useSessionStore()
+    session_store.initSession(session?.code, session?.quiz)
+    navigateTo('/instructor/session/entry')
     hideOpenSession()
   } catch (error) {
     console.error(error)

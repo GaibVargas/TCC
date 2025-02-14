@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { SessionTypes } from '~/types/session'
+import { SessionModes } from '~/types/session'
 
 interface Props {
   quizTitle: string
@@ -9,10 +9,10 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'cancel'): void
-  (e: 'open', mode: SessionTypes | null): void
+  (e: 'open', mode: SessionModes | null): void
 }>()
 
-const mode = ref<SessionTypes | null>(null)
+const mode = ref<SessionModes | null>(null)
 </script>
 
 <template>
@@ -20,8 +20,8 @@ const mode = ref<SessionTypes | null>(null)
     <h1 class="mb-8">Criando sessão para {{ props.quizTitle }}</h1>
     <v-radio-group v-model="mode">
       <template v-slot:label>Tipo de jogo:</template>
-      <v-radio label="Individual" :value="SessionTypes.INDIVIDUAL"></v-radio>
-      <v-radio label="Equipes" :value="SessionTypes.GROUP"></v-radio>
+      <v-radio label="Individual" :value="SessionModes.INDIVIDUAL"></v-radio>
+      <v-radio label="Equipes" :value="SessionModes.GROUP"></v-radio>
     </v-radio-group>
     <v-card-actions class="pa-0">
       <v-btn variant="outlined" :disabled="loading" @click="emit('cancel')">Cancelar</v-btn>
