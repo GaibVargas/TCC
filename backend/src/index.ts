@@ -10,6 +10,7 @@ import userRoutes from './entities/user/routes'
 import HttpRequestError from './utils/error'
 import authRoutes from './auth/routes'
 import quizRoutes from './entities/quiz/routes'
+import socketIOPlugin from './socket/plugin'
 
 const server = Fastify({
   logger: true,
@@ -17,8 +18,9 @@ const server = Fastify({
 
 server.register(fastifyFormbody)
 server.register(cors, {
-  origin: 'http://localhost:3000'
+  origin: config.host.FRONTEND_URL,
 })
+server.register(socketIOPlugin)
 
 const prismaErrors = [
   Prisma.PrismaClientKnownRequestError,
