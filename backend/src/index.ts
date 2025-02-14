@@ -11,6 +11,7 @@ import HttpRequestError from './utils/error'
 import authRoutes from './auth/routes'
 import quizRoutes from './entities/quiz/routes'
 import socketIOPlugin from './socket/plugin'
+import sessionRoutes from './entities/session/routes'
 
 const server = Fastify({
   logger: true,
@@ -89,6 +90,7 @@ server.register(ltiRoutes, { prefix: '/lti' })
 server.register(authRoutes, { prefix: '/auth' })
 server.register(userRoutes, { prefix: '/user' })
 server.register(quizRoutes, { prefix: '/quiz' })
+server.register(sessionRoutes, { prefix: '/session' })
 
 const start = async (): Promise<void> => {
   try {
