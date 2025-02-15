@@ -1,37 +1,48 @@
 import { FastifyPluginCallback } from 'fastify'
 import { Server } from 'socket.io'
 import { config } from '../config/env'
-import { ClientToServerEvents, ServerToClientEvents } from './types'
-import { SessionsManager } from '../entities/session/sessions-manager'
+import { ClientToServerEvents, ServerToClientEvents, SocketData } from './types'
+import { verifyToken } from '../auth/token'
+import { minUserSchema } from '../entities/user/type'
+import { EventsMap } from 'socket.io/dist/typed-events'
+import { registerSocketHandlers } from './event-listeners'
 
-const sessions_manager = SessionsManager.getInstance()
-
-const socketIOPlugin: FastifyPluginCallback = (
-  fastify,
-  _options,
-  done,
-) => {
-  const io = new Server<ClientToServerEvents, ServerToClientEvents>(fastify.server, {
+const socketIOPlugin: FastifyPluginCallback = (fastify, _options, done) => {
+  const io = new Server<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    EventsMap,
+    SocketData
+  >(fastify.server, {
     cors: {
       origin: config.host.FRONTEND_URL,
     },
   })
-  
+
+  io.use((socket, next) => {
+    const access_token = socket.handshake.auth.access_token as
+      | string
+      | null
+      | undefined
+
+    if (!access_token) {
+      return next(new Error('Authorization token is required'))
+    }
+
+    const token = verifyToken(access_token, config.auth.ACCESS_TOKEN_SECRET)
+    if (!token.valid) {
+      return next(new Error(token.error))
+    }
+
+    socket.data.user = minUserSchema.parse(token.decoded)
+    next()
+  })
+
   io.on('connection', (socket) => {
     console.log('Client connected')
-
-    socket.on('instructor:join', async (payload) => {
-      await socket.join(payload.session_code)
-      sessions_manager.instructorEnterSession(payload.session_code, socket)
-    })
-
-    socket.on('join', async (payload) => {
-      await socket.join(payload.session_code)
-      io.to(payload.session_code).emit('new-participant')
-      console.log(`Client joined group: ${payload.session_code}`)
-    })
-
-    socket.on('disconnect', () => {
+    registerSocketHandlers(io, socket)
+    socket.on('disconnect', (a) => {
+      console.log(a)
       console.log('Client disconnected')
     })
   })
