@@ -1,8 +1,12 @@
 <script lang="ts" setup>
+definePageMeta({
+  middleware: 'is-instructor',
+})
+
 const user = useUser()
 const session = useSessionStore()
 const socket = useSocket()
-socket.emit('join', { session_code: session.code, user_public_id: user.public_id })
+socket.emit('instructor:join', { session_code: session.code, user_public_id: user.public_id })
 
 onMounted(() => {
   socket.on('new-participant', () => {

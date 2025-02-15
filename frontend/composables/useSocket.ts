@@ -1,10 +1,20 @@
-export const useSocket = () => {
+export const useSocket = (connect = true) => {
+  const socket = useNuxtApp().$socket
+  const session = useSessionStore()
+
   onMounted(() => {
-    const socket = useNuxtApp().$socket
-    if(!socket.connected)
+    console.log('socket mount')
+    if(!socket.connected && connect)
       socket.connect()
+
+    socket.on('connect', () => {
+      console.log('aaaa')
+      session.setConnectionStatus('connected')
+    })
+    socket.on('disconnet', () => {
+      session.setConnectionStatus('disconnected')
+    })
   })
 
-  const socket = useNuxtApp().$socket
   return socket
 }

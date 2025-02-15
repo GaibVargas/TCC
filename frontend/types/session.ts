@@ -6,10 +6,13 @@ export enum SessionModes {
   GROUP = 'group',
 }
 
+export type ConnectionStatus = 'connected' | 'disconnected'
+
 export interface Session {
   code: string
   participants: User[]
   quiz: QuizPayload | null
+  connection_status: ConnectionStatus
 }
 
 export type SessionCreatePayload = {
