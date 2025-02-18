@@ -3,21 +3,23 @@ const props = defineProps<{
   prepend: string
   description: string
   disabled?: boolean
+  selected?: boolean
   correct?: boolean
   incorrect?: boolean
 }>()
 
-const disabled = props.disabled ?? false
-const correct = props.correct ?? false
-const incorrect = props.incorrect ?? false
+const disabled = computed(() => props.disabled ?? false)
+const selected = computed(() => props.selected ?? false)
+const correct = computed(() => props.correct ?? false)
+const incorrect = computed(() => props.incorrect ?? false)
 
-function click() {
-  console.log("clik clika")
-}
+const emit = defineEmits<{
+  (e: 'click'): void
+}>()
 </script>
 
 <template>
-  <button class="text-start px-4 py-4 rounded border-thin border-opacity-100 btn" :class="{ correct, incorrect }" :disabled="disabled" @click="click">
+  <button class="text-start px-4 py-4 rounded border-thin border-opacity-100 btn" :class="{ correct, incorrect, selected }" :disabled="disabled" @click="emit('click')">
     <span class="opacity-50">{{ prepend }}</span>
     {{ props.description }}
   </button>
@@ -25,13 +27,15 @@ function click() {
 
 <style lang="sass" scoped>
 .btn
-  &:hover
+  &:not(:disabled):hover
     background: #00000011
+.selected
+  background: #00000011
 .correct
-  border-color: #23FFAB !important
-  background-color: #E0FFF3 !important
+  border-color: rgb(var(--v-theme-success)) !important
+  background-color: rgba(var(--v-theme-success), .1) !important
 .incorrect
-  border-color: #FF4123 !important
-  background-color: #FFE4E0 !important
+  border-color: rgb(var(--v-theme-error)) !important
+  background-color: rgba(var(--v-theme-error), .1) !important
 </style>
 

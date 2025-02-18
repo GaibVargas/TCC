@@ -2,7 +2,6 @@ import type {
   PublicId,
   QuestionGeneric,
   QuestionOptionPayload,
-  QuestionType,
   QuizPayload,
 } from "./quiz"
 import type { User } from "./user"
@@ -32,7 +31,6 @@ export enum SessionStatus {
   FEEDBACK_QUESTION = "feedback-question",
   FEEDBACK_SESSION = "feedback-session",
   ENDING = "ending",
-  PAUSED = "paused",
 }
 
 export interface SessionQuestionOption
@@ -44,20 +42,26 @@ export interface SessionQuestion
       QuestionGeneric<SessionQuestionOption>,
       "description" | "type" | "options" | "time_limit"
     > {
+  question_index: number
+  total_questions: number
   startedAt: number // Date in ms
 }
 
-interface SessionQuestionFeedback {
+export interface SessionQuestionFeedback {
   given_answer: string
   correct_answer: string
+  points: number
+  velocity_bonus: number
+  streak_bonus: number
 }
 
 interface SessionBaseState {
   quiz_title: string
 }
 
+
 interface SessionWaitingState extends SessionBaseState {
-  status: SessionStatus.PAUSED | SessionStatus.WAITING_START
+  status: SessionStatus.WAITING_START
 }
 
 interface SessionShowingQuestionState extends SessionBaseState {

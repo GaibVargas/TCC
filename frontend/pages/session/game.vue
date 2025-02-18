@@ -14,13 +14,6 @@ function goToWaiting() {
   }
 }
 
-function goToPause() {
-  session.value = {
-    quiz_title: session.value.quiz_title,
-    status: SessionStatus.PAUSED,
-  }
-}
-
 function goToShowMultiQuestion() {
   session.value = {
     quiz_title: session.value.quiz_title,
@@ -36,6 +29,8 @@ function goToShowMultiQuestion() {
         { public_id: unique_id(), description: 'Opção 3' },
         { public_id: unique_id(), description: 'Opção 4' },
       ],
+      question_index: 1,
+      total_questions: 3,
       startedAt: 0,
     },
   }
@@ -54,6 +49,8 @@ function goToShowTrueQuestion() {
         { public_id: 'id-manual-3', description: 'Verdadeiro' },
         { public_id: 'id-manual-4', description: 'Falso' },
       ],
+      question_index: 2,
+      total_questions: 3,
       startedAt: 0,
     },
   }
@@ -69,6 +66,8 @@ function goToShowTextQuestion() {
       time_limit: 60,
       type: QuestionType.TEXT,
       options: [],
+      question_index: 3,
+      total_questions: 3,
       startedAt: 0,
     },
   }
@@ -81,8 +80,8 @@ function goToShowQuestionFeedback() {
     status: SessionStatus.FEEDBACK_QUESTION,
     question: session.value.question,
     feedback: session.value.question.type === QuestionType.MULTI_CHOICE
-      ? { correct_answer: 'id-manual-1', given_answer: 'id-manual-2' } : session.value.question.type === QuestionType.TRUE_OR_FALSE
-        ? { correct_answer: 'id-manual-3', given_answer: 'id-manual-4' } : { correct_answer: 'certo', given_answer: 'errado' }
+      ? { correct_answer: 'id-manual-1', given_answer: 'id-manual-1', points: 100, velocity_bonus: 10, streak_bonus: 5 } : session.value.question.type === QuestionType.TRUE_OR_FALSE
+        ? { correct_answer: 'id-manual-3', given_answer: 'id-manual-4', points: 0, velocity_bonus: 0, streak_bonus: 0 } : { correct_answer: 'certo', given_answer: 'certo', points: 100, velocity_bonus: 10, streak_bonus: 5 }
   }
 }
 
@@ -107,7 +106,10 @@ function goToShowSessionFeedback() {
     <SessionWaitingStart v-if="session.status === SessionStatus.WAITING_START" class="fill-height flex-column"
       :quiz_title="session.quiz_title" />
     <SessionQuestion v-else-if="session.status === SessionStatus.SHOWING_QUESTION" v-bind="session.question" />
-    <SessionRanking v-else-if="session.status === SessionStatus.FEEDBACK_SESSION" class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking" />
+    <SessionQuestionFeedback v-else-if="session.status === SessionStatus.FEEDBACK_QUESTION" :question="session.question"
+      :feedback="session.feedback" />
+    <SessionRanking v-else-if="session.status === SessionStatus.FEEDBACK_SESSION"
+      class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking" />
     <div class="actions">
       <v-btn @click.stop="goToWaiting">Go to waiting</v-btn>
       <v-btn @click.stop="goToShowMultiQuestion">Show question multi</v-btn>
@@ -116,7 +118,6 @@ function goToShowSessionFeedback() {
       <v-btn @click.stop="goToShowQuestionFeedback">Show question feedback</v-btn>
       <v-btn @click.stop="goToShowSessionFeedback">Show session feedback</v-btn>
       <v-btn @click.stop="goToShowSessionFeedback">End</v-btn>
-      <v-btn @click.stop="goToPause">Pause</v-btn>
     </div>
   </v-container>
 </template>
