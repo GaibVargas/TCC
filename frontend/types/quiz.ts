@@ -4,7 +4,7 @@ export enum QuestionType {
   TEXT = "text",
 }
 
-interface PublicId {
+export interface PublicId {
   public_id: string
 }
 

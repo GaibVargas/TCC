@@ -2,7 +2,7 @@
 import type { VTextField } from 'vuetify/components'
 
 definePageMeta({
-  middleware: 'has-user',
+  // middleware: 'has-user',
 })
 
 const user = useUser()
