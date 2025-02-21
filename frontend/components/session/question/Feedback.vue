@@ -39,9 +39,9 @@ const is_correct_answer = computed(() => props.feedback.correct_answer.toLocaleL
         :incorrect="!is_correct_answer && props.feedback.given_answer === option.public_id" disabled />
     </div>
     <div v-else class="w-100">
-      <p class="text-center py-4 border-thin" :class="[is_correct_answer ? 'correct' : 'incorrect']">{{
+      <p class="text-center py-4 border-thin rounded" :class="[is_correct_answer ? 'correct' : 'incorrect']">{{
         props.feedback.given_answer }}</p>
-      <p class="mt-2 text-center py-4 border-thin correct" v-if="!is_correct_answer">{{ props.feedback.correct_answer }}
+      <p class="mt-2 text-center py-4 border-thin rounded correct" v-if="!is_correct_answer">{{ props.feedback.correct_answer }}
       </p>
     </div>
   </v-container>

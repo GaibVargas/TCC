@@ -102,7 +102,7 @@ function goToShowSessionFeedback() {
 </script>
 
 <template>
-  <v-container fluid class="ma-0 pa-sm-4 pa-md-8 fill-height flex-column container">
+  <v-container fluid class="ma-0 pa-sm-4 pa-md-8 fill-height flex-column">
     <SessionWaitingStart v-if="session.status === SessionStatus.WAITING_START" class="fill-height flex-column"
       :quiz_title="session.quiz_title" />
     <SessionQuestion v-else-if="session.status === SessionStatus.SHOWING_QUESTION" v-bind="session.question" />
@@ -110,7 +110,7 @@ function goToShowSessionFeedback() {
       :feedback="session.feedback" />
     <SessionRanking v-else-if="session.status === SessionStatus.FEEDBACK_SESSION"
       class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking" />
-    <div class="actions">
+    <div class="position-absolute top-0 w-100 opacity-50">
       <v-btn @click.stop="goToWaiting">Go to waiting</v-btn>
       <v-btn @click.stop="goToShowMultiQuestion">Show question multi</v-btn>
       <v-btn @click.stop="goToShowTrueQuestion">Show question true</v-btn>
@@ -121,13 +121,3 @@ function goToShowSessionFeedback() {
     </div>
   </v-container>
 </template>
-
-<style lang="sass" scoped>
-.container
-  position: relative
-.actions
-  position: absolute
-  width: 100%
-  top: 0px
-  opacity: .5
-</style>

@@ -55,10 +55,18 @@ export interface SessionQuestionFeedback {
   streak_bonus: number
 }
 
+export interface InstructorSessionQuestionFeedback {
+  correct_answer: string
+  answers: Record<string, string[]>
+}
+
 interface SessionBaseState {
   quiz_title: string
 }
 
+interface InstructorSessionBaseState extends SessionBaseState {
+  participants: String[]
+}
 
 interface SessionWaitingState extends SessionBaseState {
   status: SessionStatus.WAITING_START
@@ -69,10 +77,25 @@ interface SessionShowingQuestionState extends SessionBaseState {
   question: SessionQuestion
 }
 
+export interface InstructorSessionShowingQuestionState
+  extends SessionShowingQuestionState,
+    InstructorSessionBaseState {
+  status: SessionStatus.SHOWING_QUESTION
+  question: SessionQuestion
+  ready_participants: string[]
+}
+
 interface SessionFeedbackQuestionState extends SessionBaseState {
   status: SessionStatus.FEEDBACK_QUESTION
   question: SessionQuestion
   feedback: SessionQuestionFeedback
+}
+
+export interface InstructorSessionFeedbackQuestionState
+  extends InstructorSessionBaseState {
+  status: SessionStatus.FEEDBACK_QUESTION
+  question: SessionQuestion
+  feedback: InstructorSessionQuestionFeedback
 }
 
 interface RankingEntry {
@@ -80,7 +103,7 @@ interface RankingEntry {
   points: number
 }
 
-interface SessionFeedbackSessionState extends SessionBaseState {
+export interface SessionFeedbackSessionState extends SessionBaseState {
   status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING
   ranking: RankingEntry[]
 }
@@ -89,4 +112,9 @@ export type SessionState =
   | SessionWaitingState
   | SessionShowingQuestionState
   | SessionFeedbackQuestionState
+  | SessionFeedbackSessionState
+
+export type InstructorSessionState =
+  | InstructorSessionShowingQuestionState
+  | InstructorSessionFeedbackQuestionState
   | SessionFeedbackSessionState
