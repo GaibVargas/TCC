@@ -1,19 +1,129 @@
 import { Server, Socket } from 'socket.io'
 import { MinUser } from '../entities/user/type'
 import { EventsMap } from 'socket.io/dist/typed-events'
-
-export interface ServerToClientEvents {
-  message: (payload: { text: string; timestamp: number }) => void
-  'new-participant': (payload: void) => void
-}
+import { Question, QuestionOption } from '../entities/quiz/type'
 
 export interface SessionIdentification {
   session_code: string
-  user_public_id: string
+}
+
+interface SessionQuiz {
+  public_id: string
+  title: string
+}
+
+interface QuestionAnswer extends SessionIdentification {
+  quiz: SessionQuiz
+  question_public_id: string
+  answer: string
 }
 
 export interface ClientToServerEvents {
   'instructor:join': (payload: SessionIdentification) => Promise<void>
+  'instructor:leave': () => Promise<void>
+
+  'participant:join': (payload: SessionIdentification) => Promise<void>
+  'participant:leave': () => Promise<void>
+
+  'game:start': (payload: SessionIdentification) => Promise<void>
+  'game:next-step': (payload: SessionIdentification) => Promise<void>
+  'game:question-answer': (payload: QuestionAnswer) => Promise<void>
+}
+
+interface SessionParticipants extends SessionIdentification {
+  participants: string[]
+}
+
+interface SessionParticipantsQuestionAnswered extends SessionIdentification {
+  question_public_id: string
+  ready_participants: string[]
+}
+
+export enum SessionStatus {
+  WAITING_START = 'waiting-start',
+  SHOWING_QUESTION = 'show-question',
+  FEEDBACK_QUESTION = 'feedback-question',
+  FEEDBACK_SESSION = 'feedback-session',
+  ENDING = 'ending',
+}
+
+interface SessionBaseState extends SessionIdentification, SessionQuiz {
+  status: SessionStatus
+}
+
+interface InstructorSessionWaitingState
+  extends SessionBaseState,
+    SessionParticipants {
+  status: SessionStatus.WAITING_START
+}
+
+interface ParticipantSessionWaitingState extends SessionBaseState {
+  status: SessionStatus.WAITING_START
+}
+
+type SessionQuestionOptions = Pick<QuestionOption, 'public_id' | 'description'>
+interface SessionQuestion
+  extends Pick<Question, 'public_id' | 'description' | 'type' | 'time_limit'> {
+  options: SessionQuestionOptions
+  index: number
+  total: number
+  startedAt: number // Date in ms
+}
+
+interface InstructorSessionShowingQuestionState extends SessionBaseState {
+  status: SessionStatus.SHOWING_QUESTION
+  question: SessionQuestion
+  ready_participants: string[]
+}
+
+interface InstructorSessionQuestionFeedback {
+  correct_answer: string
+  answers: Record<string, string[]>
+}
+
+interface InstructorSessionFeedbackQuestionState
+  extends SessionBaseState,
+    InstructorSessionQuestionFeedback {
+  status: SessionStatus.FEEDBACK_QUESTION
+  question: SessionQuestion
+}
+
+interface RankingEntry {
+  name: string
+  points: number
+}
+
+interface SessionFeedbackSessionState extends SessionBaseState {
+  status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING
+  ranking: RankingEntry[]
+}
+
+type InstructorSessionState =
+  | InstructorSessionWaitingState
+  | InstructorSessionShowingQuestionState
+  | InstructorSessionFeedbackQuestionState
+  | SessionFeedbackSessionState
+
+type ParticipantSessionState =
+  | ParticipantSessionWaitingState
+  | SessionFeedbackSessionState
+
+export interface ServerToClientEvents {
+  'game:instructor:participant-join': (
+    payload: SessionParticipants,
+  ) => Promise<void>
+  'game:instructor:participant-leave': (
+    payload: SessionParticipants,
+  ) => Promise<void>
+  'game:instructor:update-state': (
+    payload: InstructorSessionState,
+  ) => Promise<void>
+  'game:instructor:question-answer': (
+    payload: SessionParticipantsQuestionAnswered,
+  ) => Promise<void>
+  'game:participant:update-state': (
+    payload: ParticipantSessionState,
+  ) => Promise<void>
 }
 
 export interface SocketData {

@@ -10,5 +10,5 @@ export async function instructorJoin(
   await delay()
   const sessions_manager = SessionsManager.getInstance()
   sessions_manager.instructorEnterSession(payload.session_code, socket)
-  console.log(payload.user_public_id, 'enter in', payload.session_code)
+  console.log(socket.data.user.public_id, 'enter in', payload.session_code)
 }

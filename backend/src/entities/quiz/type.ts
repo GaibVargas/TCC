@@ -53,6 +53,8 @@ export const quiz_resume_schema = z.object({
   can_open_session: z.boolean(),
 })
 
+export type Question = z.infer<typeof question_schema>
+
 export type CreateQuizPayload = z.infer<typeof create_quiz_schema>
 export type UpdateQuizPayload = z.infer<typeof update_quiz_schema>
 export type Quiz = z.infer<typeof quiz_schema>
