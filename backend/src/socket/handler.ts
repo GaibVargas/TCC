@@ -9,6 +9,39 @@ export async function instructorJoin(
 ): Promise<void> {
   await delay()
   const sessions_manager = SessionsManager.getInstance()
-  sessions_manager.instructorEnterSession(payload.session_code, socket)
-  console.log(socket.data.user.public_id, 'enter in', payload.session_code)
+  sessions_manager.instructorEnterSession(payload.code, socket)
+  console.log(socket.data.user.public_id, '[i] enter in', payload.code)
+}
+
+export async function instructorLeave(
+  io: CustomServer,
+  socket: CustomSocket,
+  payload: SessionIdentification,
+): Promise<void> {
+  await delay()
+  const sessions_manager = SessionsManager.getInstance()
+  sessions_manager.instructorLeaveSession(payload.code)
+  console.log(socket.data.user.public_id, '[i] leave in', payload.code)
+}
+
+export async function participantJoin(
+  io: CustomServer,
+  socket: CustomSocket,
+  payload: SessionIdentification,
+): Promise<void> {
+  await delay()
+  const sessions_manager = SessionsManager.getInstance()
+  sessions_manager.participantEnterSession(payload.code, socket.data.user, socket)
+  console.log(socket.data.user.public_id, '[p] enter in', payload.code)
+}
+
+export async function participantLeave(
+  io: CustomServer,
+  socket: CustomSocket,
+  payload: SessionIdentification,
+): Promise<void> {
+  await delay()
+  const sessions_manager = SessionsManager.getInstance()
+  sessions_manager.participantLeaveSession(payload.code, socket.data.user)
+  console.log(socket.data.user.public_id, '[p] leave in', payload.code)
 }

@@ -4,7 +4,7 @@ import { EventsMap } from 'socket.io/dist/typed-events'
 import { Question, QuestionOption } from '../entities/quiz/type'
 
 export interface SessionIdentification {
-  session_code: string
+  code: string
 }
 
 interface SessionQuiz {
@@ -20,10 +20,10 @@ interface QuestionAnswer extends SessionIdentification {
 
 export interface ClientToServerEvents {
   'instructor:join': (payload: SessionIdentification) => Promise<void>
-  'instructor:leave': () => Promise<void>
+  'instructor:leave': (payload: SessionIdentification) => Promise<void>
 
   'participant:join': (payload: SessionIdentification) => Promise<void>
-  'participant:leave': () => Promise<void>
+  'participant:leave': (payload: SessionIdentification) => Promise<void>
 
   'game:start': (payload: SessionIdentification) => Promise<void>
   'game:next-step': (payload: SessionIdentification) => Promise<void>
@@ -47,13 +47,14 @@ export enum SessionStatus {
   ENDING = 'ending',
 }
 
-interface SessionBaseState extends SessionIdentification, SessionQuiz {
+interface SessionBaseState
+  extends SessionIdentification,
+    SessionParticipants,
+    SessionQuiz {
   status: SessionStatus
 }
 
-interface InstructorSessionWaitingState
-  extends SessionBaseState,
-    SessionParticipants {
+interface InstructorSessionWaitingState extends SessionBaseState {
   status: SessionStatus.WAITING_START
 }
 
@@ -76,16 +77,36 @@ interface InstructorSessionShowingQuestionState extends SessionBaseState {
   ready_participants: string[]
 }
 
+type ParticipantSessionShowingQuestionState = Omit<
+  InstructorSessionShowingQuestionState,
+  'ready_participants'
+>
+
 interface InstructorSessionQuestionFeedback {
   correct_answer: string
   answers: Record<string, string[]>
 }
 
 interface InstructorSessionFeedbackQuestionState
-  extends SessionBaseState,
-    InstructorSessionQuestionFeedback {
+  extends SessionBaseState {
   status: SessionStatus.FEEDBACK_QUESTION
   question: SessionQuestion
+  feedback: InstructorSessionQuestionFeedback
+}
+
+interface ParticipantSessionQuestionFeedback {
+  given_answer: string
+  correct_answer: string
+  is_correct: boolean
+  points: number
+  velocity_bonus: number
+  streak_bonus: number
+}
+
+interface ParticipantSessionFeedbackQuestionState extends SessionBaseState {
+  status: SessionStatus.FEEDBACK_QUESTION
+  question: SessionQuestion
+  feedback: ParticipantSessionQuestionFeedback
 }
 
 interface RankingEntry {
@@ -106,6 +127,8 @@ type InstructorSessionState =
 
 type ParticipantSessionState =
   | ParticipantSessionWaitingState
+  | ParticipantSessionShowingQuestionState
+  | ParticipantSessionFeedbackQuestionState
   | SessionFeedbackSessionState
 
 export interface ServerToClientEvents {

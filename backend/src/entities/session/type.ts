@@ -13,5 +13,5 @@ export const create_session_payload_schema = z.object({
 
 export type SessionCreatePayload = {
   code: string
-  quiz: Quiz
+  quiz: Pick<Quiz, "public_id" | "title">
 }

@@ -13,7 +13,10 @@ export async function createSession(
   const quiz = await quizServices.getQuiz(session.quiz_public_id)
   const sessions_manager = SessionsManager.getInstance()
   return {
-    quiz,
+    quiz: {
+      public_id: quiz.public_id,
+      title: quiz.title,
+    },
     code: sessions_manager.newSession(req.user, quiz),
   }
 }
