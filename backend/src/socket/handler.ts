@@ -7,6 +7,7 @@ export async function instructorJoin(
   socket: CustomSocket,
   payload: SessionIdentification,
 ): Promise<void> {
+  console.log('INSTRUCTOR JOIN')
   await delay()
   const sessions_manager = SessionsManager.getInstance()
   sessions_manager.instructorEnterSession(payload.code, socket)
