@@ -2,22 +2,26 @@
 import type { VTextField } from 'vuetify/components'
 
 definePageMeta({
-  // middleware: 'has-user',
+  middleware: 'has-user',
 })
 
 const user = useUser()
 
 const loading = ref(false)
+const code = ref('')
 
 function required(v: string) {
   return !!v || 'Sessão é obrigatório.'
 }
 
+const socket = useSocket()
+
 const session_ref: Ref<InstanceType<typeof VTextField> | null> = ref(null)
 async function enterSession() {
-  if (!session_ref.value) return
+  if (!session_ref.value || !code.value) return
   const result = await session_ref.value.validate()
-  if (!result.length) return
+  if (result.length) return
+  socket.emit('participant:join', { code: code.value })
 }
 </script>
 
@@ -36,6 +40,7 @@ async function enterSession() {
         variant="outlined"
         :readonly="loading"
         :rules="[required]"
+        v-model="code"
       ></v-text-field>
       <v-btn class="w-100 mt-4" color="primary" :loading="loading" @click.stop="enterSession">Entrar</v-btn>
     </div>
