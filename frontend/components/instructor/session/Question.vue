@@ -7,8 +7,8 @@ const props = defineProps<InstructorSessionShowingQuestionState>()
 
 <template>
   <v-container fluid class="ma-0 pa-0 flex-fill fill-height flex-column justify-center position-relative">
-    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.question_index }} / {{
-      props.question.total_questions }}</span>
+    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.index }} / {{
+      props.question.total }}</span>
     <div class="d-flex align-center">
       <v-icon size="small" class="mr-2">mdi-account</v-icon>
       <span class="text-caption">{{ props.ready_participants.length }} / {{ props.participants.length }}</span>

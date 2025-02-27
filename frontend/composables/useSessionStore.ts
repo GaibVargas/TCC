@@ -1,21 +1,23 @@
-import type { QuizPayload } from "~/types/quiz"
-import type { ConnectionStatus, Session } from "~/types/session"
-import type { User } from "~/types/user"
+import { SessionStatus, type SessionQuiz, type SessionState } from "~/types/session"
 
-export const useSessionStore = defineStore('session', {
-  state: (): Session => ({ code: '', participants: [], quiz: null, connection_status: 'disconnected' }),
+export const useSessionStore = defineStore("session", {
+  state: (): SessionState => ({
+    code: "",
+    participants: [],
+    status: SessionStatus.WAITING_START,
+    quiz: {
+      public_id: '',
+      title: '',
+    },
+  }),
   actions: {
-    initSession(code: string, quiz: QuizPayload) {
+    initSession(code: string, quiz: SessionQuiz) {
       this.code = code
       this.quiz = quiz
     },
-    addParticipant(participant: User) {
-      this.participants.push(participant)
+    updateParticipants(participants: string[]) {
+      this.participants = participants
     },
-    setConnectionStatus(status: ConnectionStatus) {
-      console.log(status)
-      this.connection_status = status
-    }
   },
-  persist: { storage: piniaPluginPersistedstate.localStorage() }
+  persist: { storage: piniaPluginPersistedstate.localStorage() },
 })

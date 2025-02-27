@@ -16,8 +16,8 @@ function getOptionNAnswers(option_public_id: string) {
 
 <template>
   <v-container fluid class="ma-0 pa-0 flex-fill fill-height flex-column justify-center position-relative">
-    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.question_index }} / {{
-      props.question.total_questions }}</span>
+    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.index }} / {{
+      props.question.total }}</span>
     <div class="d-flex align-center justify-center">
       <v-icon size="small" class="mr-2">mdi-account</v-icon>
       <span class="text-body-1">{{ props.participants.length }}</span>

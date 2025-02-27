@@ -1,22 +1,37 @@
 <script lang="ts" setup>
 import { QuestionType } from '~/types/quiz';
-import { SessionStatus, type SessionState } from '~/types/session'
+import { SessionStatus, type ParticipantSessionState } from '~/types/session'
 
-const session = ref<SessionState>({
-  quiz_title: 'Título do quiz',
+const session = ref<ParticipantSessionState>({
+  code: 'asdfg',
+  quiz: {
+    public_id: 'id-quiz',
+    title: 'Título do quiz'
+  },
+  participants: [],
   status: SessionStatus.WAITING_START,
 })
 
 function goToWaiting() {
   session.value = {
-    quiz_title: 'Título do quiz',
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.WAITING_START,
   }
 }
 
 function goToShowMultiQuestion() {
   session.value = {
-    quiz_title: session.value.quiz_title,
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.SHOWING_QUESTION,
     question: {
       public_id: unique_id(),
@@ -29,8 +44,8 @@ function goToShowMultiQuestion() {
         { public_id: unique_id(), description: 'Opção 3' },
         { public_id: unique_id(), description: 'Opção 4' },
       ],
-      question_index: 1,
-      total_questions: 3,
+      index: 1,
+      total: 3,
       startedAt: 0,
     },
   }
@@ -38,7 +53,12 @@ function goToShowMultiQuestion() {
 
 function goToShowTrueQuestion() {
   session.value = {
-    quiz_title: session.value.quiz_title,
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.SHOWING_QUESTION,
     question: {
       public_id: unique_id(),
@@ -49,8 +69,8 @@ function goToShowTrueQuestion() {
         { public_id: 'id-manual-3', description: 'Verdadeiro' },
         { public_id: 'id-manual-4', description: 'Falso' },
       ],
-      question_index: 2,
-      total_questions: 3,
+      index: 2,
+      total: 3,
       startedAt: 0,
     },
   }
@@ -58,7 +78,12 @@ function goToShowTrueQuestion() {
 
 function goToShowTextQuestion() {
   session.value = {
-    quiz_title: session.value.quiz_title,
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.SHOWING_QUESTION,
     question: {
       public_id: unique_id(),
@@ -66,8 +91,8 @@ function goToShowTextQuestion() {
       time_limit: 60,
       type: QuestionType.TEXT,
       options: [],
-      question_index: 3,
-      total_questions: 3,
+      index: 3,
+      total: 3,
       startedAt: 0,
     },
   }
@@ -76,18 +101,28 @@ function goToShowTextQuestion() {
 function goToShowQuestionFeedback() {
   if (session.value.status !== SessionStatus.SHOWING_QUESTION) return
   session.value = {
-    quiz_title: session.value.quiz_title,
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.FEEDBACK_QUESTION,
     question: session.value.question,
     feedback: session.value.question.type === QuestionType.MULTI_CHOICE
-      ? { correct_answer: 'id-manual-1', given_answer: 'id-manual-1', points: 100, velocity_bonus: 10, streak_bonus: 5 } : session.value.question.type === QuestionType.TRUE_OR_FALSE
-        ? { correct_answer: 'id-manual-3', given_answer: 'id-manual-4', points: 0, velocity_bonus: 0, streak_bonus: 0 } : { correct_answer: 'certo', given_answer: 'certo', points: 100, velocity_bonus: 10, streak_bonus: 5 }
+      ? { correct_answer: 'id-manual-1', given_answer: 'id-manual-1', is_correct: true, points: 100, velocity_bonus: 10, streak_bonus: 5 } : session.value.question.type === QuestionType.TRUE_OR_FALSE
+        ? { correct_answer: 'id-manual-3', given_answer: 'id-manual-4', is_correct: false, points: 0, velocity_bonus: 0, streak_bonus: 0 } : { correct_answer: 'certo', given_answer: 'Certo', is_correct: false, points: 100, velocity_bonus: 10, streak_bonus: 5 }
   }
 }
 
 function goToShowSessionFeedback() {
   session.value = {
-    quiz_title: session.value.quiz_title,
+    code: 'asdfg',
+    quiz: {
+      public_id: 'id-quiz',
+      title: 'Título do quiz'
+    },
+    participants: [],
     status: SessionStatus.FEEDBACK_SESSION,
     ranking: [
       { name: 'Gabriel', points: 456 },
@@ -104,7 +139,7 @@ function goToShowSessionFeedback() {
 <template>
   <v-container fluid class="ma-0 pa-sm-4 pa-md-8 fill-height flex-column">
     <SessionWaitingStart v-if="session.status === SessionStatus.WAITING_START" class="fill-height flex-column"
-      :quiz_title="session.quiz_title" />
+      :quiz_title="session.quiz.title" />
     <SessionQuestion v-else-if="session.status === SessionStatus.SHOWING_QUESTION" v-bind="session.question" />
     <SessionQuestionFeedback v-else-if="session.status === SessionStatus.FEEDBACK_QUESTION" :question="session.question"
       :feedback="session.feedback" />

@@ -31,8 +31,8 @@ function sendAnswer() {
     </v-card>
   </v-dialog>
   <v-container fluid class="ma-0 pa-0 flex-fill fill-height flex-column justify-center position-relative">
-    <span class="position-absolute top-0 right-0 text-caption">{{ props.question_index }} / {{
-      props.total_questions }}</span>
+    <span class="position-absolute top-0 right-0 text-caption">{{ props.index }} / {{
+      props.total }}</span>
     <p class="position-absolute top-0" v-if="props.time_limit">{{ props.time_limit }}</p>
     <p class="my-auto text-center">{{ props.description }}</p>
     <div v-if="props.type === QuestionType.MULTI_CHOICE || props.type === QuestionType.TRUE_OR_FALSE"

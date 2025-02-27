@@ -1,9 +1,14 @@
 <script lang="ts" setup>
 import { QuestionType } from '~/types/quiz'
-import { SessionStatus, type InstructorSessionFeedbackQuestionState, type InstructorSessionShowingQuestionState, type InstructorSessionState, type SessionFeedbackSessionState } from '~/types/session'
+import { SessionStatus, type InstructorSessionState } from '~/types/session'
 
-const base_session: InstructorSessionShowingQuestionState = {
-  quiz_title: 'Título do quiz',
+const base_session: InstructorSessionState = {
+  code: 'asdfg',
+  quiz: {
+    public_id: 'id-quiz',
+    title: 'Título do quiz'
+  },
+  participants: ['1', '2', '3', '4', '5'],
   status: SessionStatus.SHOWING_QUESTION,
   question: {
     public_id: unique_id(),
@@ -16,16 +21,20 @@ const base_session: InstructorSessionShowingQuestionState = {
       { public_id: 'id-manual-3', description: 'Opção 3' },
       { public_id: 'id-manual-4', description: 'Opção 4' },
     ],
-    question_index: 1,
-    total_questions: 3,
+    index: 1,
+    total: 3,
     startedAt: 0,
   },
-  participants: ['1', '2', '3', '4', '5'],
   ready_participants: ['1', '2']
 }
 
-const true_or_false_question: InstructorSessionShowingQuestionState = {
-  quiz_title: 'Título do quiz',
+const true_or_false_question: InstructorSessionState = {
+  code: 'asdfg',
+  quiz: {
+    public_id: 'id-quiz',
+    title: 'Título do quiz'
+  },
+  participants: ['1', '2', '3', '4', '5'],
   status: SessionStatus.SHOWING_QUESTION,
   question: {
     public_id: unique_id(),
@@ -36,16 +45,20 @@ const true_or_false_question: InstructorSessionShowingQuestionState = {
       { public_id: 'id-manual-5', description: 'Verdadeiro' },
       { public_id: 'id-manual-6', description: 'Falso' },
     ],
-    question_index: 2,
-    total_questions: 3,
+    index: 2,
+    total: 3,
     startedAt: 0,
   },
-  participants: ['1', '2', '3', '4', '5'],
   ready_participants: ['1', '2']
 }
 
-const text_question: InstructorSessionShowingQuestionState = {
-  quiz_title: 'Título do quiz',
+const text_question: InstructorSessionState = {
+  code: 'asdfg',
+  quiz: {
+    public_id: 'id-quiz',
+    title: 'Título do quiz'
+  },
+  participants: ['1', '2', '3', '4', '5'],
   status: SessionStatus.SHOWING_QUESTION,
   question: {
     public_id: unique_id(),
@@ -53,15 +66,14 @@ const text_question: InstructorSessionShowingQuestionState = {
     time_limit: null,
     type: QuestionType.TEXT,
     options: [],
-    question_index: 3,
-    total_questions: 3,
+    index: 3,
+    total: 3,
     startedAt: 0,
   },
-  participants: ['1', '2', '3', '4', '5'],
   ready_participants: ['1', '2']
 }
 
-const multi_question_feedback: InstructorSessionFeedbackQuestionState = {
+const multi_question_feedback: InstructorSessionState = {
   ...base_session,
   status: SessionStatus.FEEDBACK_QUESTION,
   feedback: {
@@ -73,7 +85,7 @@ const multi_question_feedback: InstructorSessionFeedbackQuestionState = {
   }
 }
 
-const true_question_feedback: InstructorSessionFeedbackQuestionState = {
+const true_question_feedback: InstructorSessionState = {
   ...true_or_false_question,
   status: SessionStatus.FEEDBACK_QUESTION,
   feedback: {
@@ -85,7 +97,7 @@ const true_question_feedback: InstructorSessionFeedbackQuestionState = {
   }
 }
 
-const text_question_feedback: InstructorSessionFeedbackQuestionState = {
+const text_question_feedback: InstructorSessionState = {
   ...text_question,
   status: SessionStatus.FEEDBACK_QUESTION,
   feedback: {
@@ -98,8 +110,13 @@ const text_question_feedback: InstructorSessionFeedbackQuestionState = {
   }
 }
 
-const ranking: SessionFeedbackSessionState = {
-  quiz_title: 'Título do quiz',
+const ranking: InstructorSessionState = {
+  code: 'asdfg',
+  quiz: {
+    public_id: 'id-quiz',
+    title: 'Título do quiz'
+  },
+  participants: ['1', '2', '3', '4', '5'],
   status: SessionStatus.FEEDBACK_SESSION,
   ranking: [
     { name: 'Gabriel', points: 456 },

@@ -1,20 +1,18 @@
 <script lang="ts" setup>
 import { QuestionType } from '~/types/quiz'
-import type { SessionQuestion, SessionQuestionFeedback } from '~/types/session'
+import type { SessionQuestion, ParticipantSessionQuestionFeedback } from '~/types/session'
 
 const props = defineProps<{
   question: SessionQuestion
-  feedback: SessionQuestionFeedback
+  feedback: ParticipantSessionQuestionFeedback
 }>()
-
-const is_correct_answer = computed(() => props.feedback.correct_answer.toLocaleLowerCase() === props.feedback.given_answer.toLocaleLowerCase())
 </script>
 
 <template>
   <v-container fluid class="ma-0 pa-0 flex-fill fill-height flex-column justify-center position-relative">
-    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.question_index }} / {{
-      props.question.total_questions }}</span>
-    <div v-if="is_correct_answer"
+    <span class="position-absolute top-0 right-0 text-caption">{{ props.question.index }} / {{
+      props.question.total }}</span>
+    <div v-if="props.feedback.is_correct"
       class="position-absolute top-0 d-flex flex-column align-center justify-center py-4 px-8 rounded feedback">
       <v-icon color="success" size="x-large">mdi-check</v-icon>
       <p class="font-weight-bold">+{{ props.feedback.points }} pts</p>
@@ -36,12 +34,13 @@ const is_correct_answer = computed(() => props.feedback.correct_answer.toLocaleL
       <SessionQuestionOption v-for="(option, index) in props.question.options" class="option" :key="option.public_id"
         :prepend="`${alphabet[index]}.`" :description="option.description"
         :correct="props.feedback.correct_answer === option.public_id"
-        :incorrect="!is_correct_answer && props.feedback.given_answer === option.public_id" disabled />
+        :incorrect="!props.feedback.is_correct && props.feedback.given_answer === option.public_id" disabled />
     </div>
     <div v-else class="w-100">
-      <p class="text-center py-4 border-thin rounded" :class="[is_correct_answer ? 'correct' : 'incorrect']">{{
+      <p class="text-center py-4 border-thin rounded" :class="[props.feedback.is_correct ? 'correct' : 'incorrect']">{{
         props.feedback.given_answer }}</p>
-      <p class="mt-2 text-center py-4 border-thin rounded correct" v-if="!is_correct_answer">{{ props.feedback.correct_answer }}
+      <p class="mt-2 text-center py-4 border-thin rounded correct" v-if="!props.feedback.is_correct">{{
+        props.feedback.correct_answer }}
       </p>
     </div>
   </v-container>

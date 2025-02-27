@@ -67,7 +67,10 @@ async function openSession(mode: SessionModes | null) {
       return
     }
     const session_store = useSessionStore()
-    session_store.initSession(session?.code, session?.quiz)
+    session_store.initSession(session.code, {
+      public_id: session.quiz.public_id,
+      title: session.quiz.title,
+    })
     navigateTo('/instructor/session/entry')
     hideOpenSession()
   } catch (error) {
