@@ -28,7 +28,7 @@ export const authenticationPlugin = fastifyPlugin(authenticationPluginCb)
 
 const isInstructorPluginCb: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.addHook('onRequest', async (req, reply) => {
-    if (req.routeOptions.config.skipAuth) {
+    if (req.routeOptions.config.skipAuth || req.routeOptions.config.skipRole) {
       return
     }
     if (!req.user) {

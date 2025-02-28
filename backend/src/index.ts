@@ -12,6 +12,7 @@ import authRoutes from './auth/routes'
 import quizRoutes from './entities/quiz/routes'
 import socketIOPlugin from './socket/plugin'
 import sessionRoutes from './entities/session/routes'
+import { SessionsManager } from './entities/session/sessions-manager'
 
 const server = Fastify({
   logger: true,
@@ -82,6 +83,10 @@ server.setErrorHandler((error, _request, reply) => {
     message: 'An unknown error occurred',
   })
 })
+
+// [TODO]: Remover linha. Ela existe só para haver um quiz padrão
+// Futuramente transformar em mecanismo de recuperação de falha para continuar quizzes interrompdos
+SessionsManager.getInstance()
 
 server.get('/healthcheck', async (_request, _reply) => {
   return { message: 'Hello World!' }

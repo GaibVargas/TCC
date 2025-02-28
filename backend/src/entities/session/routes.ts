@@ -10,4 +10,5 @@ export default function sessionRoutes(
   fastify.register(isInstructorPlugin)
 
   fastify.post('/', sessionControllers.createSession)
+  fastify.get('/sync/:code', { config: { skipRole: true } }, sessionControllers.getSessionState)
 }

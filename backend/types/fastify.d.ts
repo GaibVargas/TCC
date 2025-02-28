@@ -12,5 +12,6 @@ declare module 'fastify' {
 
   interface FastifyContextConfig {
     skipAuth?: boolean
+    skipRole?: boolean
   }
 }
