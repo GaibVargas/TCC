@@ -1,6 +1,6 @@
 import type { ToastContainerOptions, ToastOptions, toast } from "vue3-toastify"
 import type { ConfirmDialogOptions } from "~/plugins/confirm.client"
-import type { CustomSocket } from "~/plugins/socket.io.client"
+import type { CustomSocket } from "./socket.io"
 
 declare module "#app" {
   interface NuxtApp {

@@ -10,8 +10,12 @@ export const useSessionStore = defineStore("session", {
   }),
   actions: {
     initSession(code: string, quiz: SessionQuiz) {
-      this.code = code
+      this.code = "abc123"
       this.quiz = quiz
+    },
+    setCode(code: string) {
+      // this.code = code
+      this.code = "abc123"
     },
   },
   persist: { storage: piniaPluginPersistedstate.localStorage() },

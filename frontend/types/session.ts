@@ -24,17 +24,17 @@ export interface SessionQuiz {
   title: string
 }
 
-interface QuestionAnswer extends SessionIdentification {
+export interface QuestionAnswer extends SessionIdentification {
   quiz: SessionQuiz
   question_public_id: string
   answer: string
 }
 
-interface SessionParticipants extends SessionIdentification {
+export interface SessionParticipants extends SessionIdentification {
   participants: string[]
 }
 
-interface SessionParticipantsQuestionAnswered extends SessionIdentification {
+export interface SessionParticipantsQuestionAnswered extends SessionIdentification {
   question_public_id: string
   ready_participants: string[]
 }

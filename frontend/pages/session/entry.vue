@@ -14,14 +14,14 @@ function required(v: string) {
   return !!v || 'Sessão é obrigatório.'
 }
 
-const socket = useSocket()
-
 const session_ref: Ref<InstanceType<typeof VTextField> | null> = ref(null)
 async function enterSession() {
   if (!session_ref.value || !code.value) return
   const result = await session_ref.value.validate()
   if (result.length) return
-  socket.emit('participant:join', { code: code.value })
+  const session = useSessionStore()
+  session.setCode(code.value)
+  navigateTo('/session/game')
 }
 </script>
 

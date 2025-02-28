@@ -147,6 +147,32 @@ function nextState() {
 function cancel() {
   session.value = base_session
 }
+
+const session_store = useSessionStore()
+if (!session_store.code) {
+  navigateTo('/instructor/quiz')
+}
+
+const { data, error } = await useApiUseFetch<InstructorSessionState>(`/session/sync/${session_store.code}`)
+if (data.value && data.value.status === SessionStatus.WAITING_START) {
+  navigateTo('/instructor/session/entry')
+}
+if (data.value) {
+  session.value = data.value
+}
+
+const socket = useSocket()
+socket.emit('instructor:join', { code: session_store.code })
+
+onMounted(() => {
+  socket.on('game:instructor:update-state', (payload) => {
+    console.log('from socket', payload)
+  })
+})
+
+onBeforeUnmount(() => {
+  socket.removeListener('game:instructor:update-state')
+})
 </script>
 
 <template>

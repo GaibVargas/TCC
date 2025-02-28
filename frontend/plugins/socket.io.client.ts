@@ -1,9 +1,8 @@
 import { defineNuxtPlugin } from '#app'
-import { io, Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
+import type { CustomSocket } from '~/types/socket.io'
 
 let refreshPromise: (() => Promise<boolean>) | null = null
-
-export type CustomSocket = Socket & { auth: { access_token?: string } }
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()

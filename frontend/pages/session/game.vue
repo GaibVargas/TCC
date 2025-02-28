@@ -134,6 +134,29 @@ function goToShowSessionFeedback() {
     ]
   }
 }
+
+const session_store = useSessionStore()
+if (!session_store.code) {
+  navigateTo('/session/entry')
+}
+
+const socket = useSocket()
+socket.emit('participant:join', { code: session_store.code })
+
+const { data, error } = await useApiUseFetch<ParticipantSessionState>(`/session/sync/${session_store.code}`)
+if (data.value) {
+  session.value = data.value
+}
+
+onMounted(() => {
+  socket.on('game:participant:update-state', (payload) => {
+    session.value = payload
+  })
+})
+
+onBeforeUnmount(() => {
+  socket.removeListener('game:participant:update-state')
+})
 </script>
 
 <template>
