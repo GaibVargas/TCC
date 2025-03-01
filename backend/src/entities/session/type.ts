@@ -20,7 +20,7 @@ export interface SessionIdentification {
   code: string
 }
 
-interface SessionQuiz {
+export interface SessionQuiz {
   public_id: string
   title: string
 }
@@ -62,7 +62,7 @@ interface ParticipantSessionWaitingState extends SessionBaseState {
 }
 
 type SessionQuestionOptions = Pick<QuestionOption, 'public_id' | 'description'>
-interface SessionQuestion
+export interface SessionQuestion
   extends Pick<Question, 'public_id' | 'description' | 'type' | 'time_limit'> {
   options: SessionQuestionOptions[]
   index: number
@@ -81,7 +81,7 @@ type ParticipantSessionShowingQuestionState = Omit<
   'ready_participants'
 >
 
-interface InstructorSessionQuestionFeedback {
+export interface InstructorSessionQuestionFeedback {
   correct_answer: string
   answers: Record<string, string[]>
 }
@@ -92,7 +92,7 @@ interface InstructorSessionFeedbackQuestionState extends SessionBaseState {
   feedback: InstructorSessionQuestionFeedback
 }
 
-interface ParticipantSessionQuestionFeedback {
+export interface ParticipantSessionQuestionFeedback {
   given_answer: string
   correct_answer: string
   is_correct: boolean

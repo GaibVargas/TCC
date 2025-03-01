@@ -66,17 +66,9 @@ const baseQuiz: Quiz = {
   ],
 }
 
-export type ActiveSessionEntry = {
-  session: Session
-  sockets: {
-    instructor: CustomSocket | null
-    participants: Map<string, CustomSocket>
-  }
-}
-
 export class SessionsManager {
   private static instance: SessionsManager
-  active_sessions: Map<string, ActiveSessionEntry>
+  active_sessions: Map<string, Session>
 
   constructor() {
     console.info('SESSION MANAGER INIT')
@@ -90,7 +82,7 @@ export class SessionsManager {
       baseQuiz,
     )
     session.code = 'abc123'
-    this.active_sessions.set(session.code, this.newSessionEntry(session))
+    this.active_sessions.set(session.code, session)
   }
 
   static getInstance(): SessionsManager {
@@ -100,19 +92,9 @@ export class SessionsManager {
     return SessionsManager.instance
   }
 
-  private newSessionEntry(session: Session): ActiveSessionEntry {
-    return {
-      session,
-      sockets: {
-        instructor: null,
-        participants: new Map(),
-      },
-    }
-  }
-
   newSession(instructor: MinUser, quiz: Quiz): string {
     const session = new Session(instructor, quiz)
-    this.active_sessions.set(session.code, this.newSessionEntry(session))
+    this.active_sessions.set(session.code, session)
     return session.code
   }
 
@@ -120,64 +102,36 @@ export class SessionsManager {
     this.active_sessions.delete(code)
   }
 
-  getSessionEntry(code: string): ActiveSessionEntry {
+  getSession(code: string): Session {
     const session = this.active_sessions.get(code)
-    if (!session) {
-      throw new Error('Session not found')
-    }
+    if (!session) throw new Error('Session not found')
     return session
   }
 
-  getSession(code: string): Session {
-    return this.getSessionEntry(code).session
-  }
-
   instructorEnterSession(code: string, socket: CustomSocket): void {
-    const session = this.getSessionEntry(code)
-    session.sockets.instructor = socket
+    const session = this.getSession(code)
+    session.connectInstructor(socket)
   }
 
   instructorLeaveSession(code: string): void {
-    const session = this.getSessionEntry(code)
-    session.sockets.instructor = null
+    const session = this.getSession(code)
+    session.disconnectInstructor()
   }
 
   participantEnterSession(code: string, user: MinUser, socket: CustomSocket): void {
-    const session = this.getSessionEntry(code)
-    session.session.addParticipant(user)
-    session.sockets.participants.set(user.public_id, socket)
-    session.sockets.instructor?.emit('game:instructor:participant-join', {
-      code: session.session.code,
-      participants: Array.from(session.session.participants.keys()),
-    })
+    const session = this.getSession(code)
+    session.addParticipant(user)
+    session.connectParticipant(user.public_id, socket)
   }
 
   participantLeaveSession(code: string, user: MinUser): void {
-    const session = this.getSessionEntry(code)
-    session.session.removeParticipant(user)
-    session.sockets.participants.delete(user.public_id)
-    session.sockets.instructor?.emit('game:instructor:participant-leave', {
-      code: session.session.code,
-      participants: Array.from(session.session.participants.keys()),
-    })
+    const session = this.getSession(code)
+    session.removeParticipant(user)
+    session.disconnectParticipant(user.public_id)
   }
 
   startSession(code: string): void {
-    const session = this.getSessionEntry(code)
-    session.session.start()
-    this.sendStateUpdates(session)
-  }
-
-  sendStateUpdates(session: ActiveSessionEntry): void {
-    session.sockets.instructor?.emit(
-      'game:instructor:update-state',
-      session.session.getInstructorState(),
-    )
-    for (const participantSocket of session.sockets.participants.values()) {
-      participantSocket.emit(
-        'game:participant:update-state',
-        session.session.getParticipantState(),
-      )
-    }
+    const session = this.getSession(code)
+    session.start()
   }
 }

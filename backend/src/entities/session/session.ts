@@ -6,57 +6,53 @@ import {
 import { generateRandomString } from '../../utils/string'
 import { Quiz } from '../quiz/type'
 import { MinUser } from '../user/type'
-
-type QuestionAnswer = {
-  user: {
-    public_id: string
-  },
-  giver_answer: string
-}
-
-type QuestionsData = {
-  public_id: string
-  startedAt: number
-  answers: QuestionAnswer[]
-}
+import { QuizManager } from './utils/quiz-manager'
+import { CustomSocket } from '../../socket/types'
 
 export class Session {
   code: string
-  instructor: MinUser
-  participants: Map<string, MinUser>
-  quiz: Quiz
-  status: SessionStatus
-  current_question: number
-  questions_data: Map<string, QuestionsData>
+  private instructor: MinUser
+  private participants: Map<string, MinUser>
+  private quiz_manager: QuizManager
+  private status: SessionStatus
+
+  private sockets: {
+    instructor: CustomSocket | null
+    participants: Map<string, CustomSocket>
+  }
 
   constructor(instructor: MinUser, quiz: Quiz) {
     this.code = generateRandomString(6)
     this.instructor = instructor
-    this.quiz = quiz
     this.participants = new Map()
     this.status = SessionStatus.WAITING_START
-    this.current_question = 0
-    this.questions_data = new Map()
+    this.quiz_manager = new QuizManager(quiz)
+    this.sockets = {
+      instructor: null,
+      participants: new Map()
+    }
+  }
+
+  isValidInstructor(public_id: string): boolean {
+    return this.instructor.public_id === public_id
+  }
+
+  isValidParticipant(public_id: string): boolean {
+    return this.participants.has(public_id)
   }
 
   start(): void {
-    this.current_question = 0
     this.status = SessionStatus.SHOWING_QUESTION
-    const question = this.quiz.questions[this.current_question]
-    this.questions_data.set(question.public_id, {
-      public_id: question.public_id,
-      startedAt: Date.now(),
-      answers: []
-    })
+    this.sendStateUpdates()
   }
 
-  getParticipantsId(): string[] {
+  private getParticipantsId(): string[] {
     return Array.from(this.participants.keys())
   }
 
   getInstructorState(): InstructorSessionState {
     const base = {
-      quiz: this.quiz,
+      quiz: this.quiz_manager.getQuiz(),
       code: this.code,
       participants: this.getParticipantsId(),
     }
@@ -67,25 +63,22 @@ export class Session {
         status: SessionStatus.WAITING_START,
       }
 
+    const question = this.quiz_manager.getCurrentQuestion()
     if (this.status === SessionStatus.SHOWING_QUESTION) {
-      const question = this.quiz.questions[this.current_question]
       return {
         ...base,
         status: SessionStatus.SHOWING_QUESTION,
-        question: {
-          public_id: question.public_id,
-          description: question.description,
-          type: question.type,
-          time_limit: question.time_limit,
-          options: question.options.map((o) => ({
-            public_id: o.public_id,
-            description: o.description,
-          })),
-          index: this.current_question,
-          total: this.quiz.questions.length,
-          startedAt: this.questions_data.get(question.public_id)?.startedAt ?? 0,
-        },
-        ready_participants: [],
+        question,
+        ready_participants: this.quiz_manager.getParticipantsThatAnsweredQuestion(question.public_id),
+      }
+    }
+
+    if (this.status === SessionStatus.FEEDBACK_QUESTION) {
+      return {
+        ...base,
+        status: SessionStatus.FEEDBACK_QUESTION,
+        question,
+        feedback: this.quiz_manager.getInstructorQuestionFeedback(question.public_id)
       }
     }
 
@@ -100,9 +93,9 @@ export class Session {
     }
   }
 
-  getParticipantState(): ParticipantSessionState {
+  getParticipantState(user_public_id: string): ParticipantSessionState {
     const base = {
-      quiz: this.quiz,
+      quiz: this.quiz_manager.getQuiz(),
       code: this.code,
       participants: this.getParticipantsId(),
     }
@@ -113,24 +106,21 @@ export class Session {
         status: SessionStatus.WAITING_START,
       }
 
+    const question = this.quiz_manager.getCurrentQuestion()
     if (this.status === SessionStatus.SHOWING_QUESTION) {
-      const question = this.quiz.questions[this.current_question]
       return {
         ...base,
         status: SessionStatus.SHOWING_QUESTION,
-        question: {
-          public_id: question.public_id,
-          description: question.description,
-          type: question.type,
-          time_limit: question.time_limit,
-          options: question.options.map((o) => ({
-            public_id: o.public_id,
-            description: o.description,
-          })),
-          index: this.current_question,
-          total: this.quiz.questions.length,
-          startedAt: this.questions_data.get(question.public_id)?.startedAt ?? 0,
-        },
+        question,
+      }
+    }
+
+    if (this.status === SessionStatus.FEEDBACK_QUESTION) {
+      return {
+        ...base,
+        status: SessionStatus.FEEDBACK_QUESTION,
+        question,
+        feedback: this.quiz_manager.getParticipantQuestionFeedback(user_public_id, question.public_id)
       }
     }
 
@@ -143,6 +133,35 @@ export class Session {
         { name: 'Nome 3', points: 1234 },
       ],
     }
+  }
+
+  private sendStateUpdates(): void {
+    this.sockets.instructor?.emit(
+      'game:instructor:update-state',
+      this.getInstructorState(),
+    )
+    for (const [user_public_id, socket] of this.sockets.participants.entries()) {
+      socket.emit(
+        'game:participant:update-state',
+        this.getParticipantState(user_public_id),
+      )
+    }
+  }
+
+  connectInstructor(socket: CustomSocket): void {
+    this.sockets.instructor = socket
+  }
+
+  disconnectInstructor(): void {
+    this.sockets.instructor = null
+  }
+
+  connectParticipant(user_public_id: string, socket: CustomSocket): void {
+    this.sockets.participants.set(user_public_id, socket)
+  }
+
+  disconnectParticipant(user_public_id: string): void {
+    this.sockets.participants.delete(user_public_id)
   }
 
   addParticipant(user: MinUser): void {

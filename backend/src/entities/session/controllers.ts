@@ -34,11 +34,10 @@ export function getSessionState(
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
-  console.log('AAAAAAAAAAAAAAAAAAAAA', session.instructor.public_id, req.user.public_id)
-  if (session.instructor.public_id === req.user.public_id)
+  if (session.isValidInstructor(req.user.public_id))
     return session.getInstructorState()
-  if (session.getParticipantsId().includes(req.user.public_id))
-    return session.getParticipantState()
+  if (session.isValidParticipant(req.user.public_id))
+    return session.getParticipantState(req.user.public_id)
   throw new HttpRequestError({
     status_code: 400,
     message: 'Session not found'
