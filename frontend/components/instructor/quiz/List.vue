@@ -71,7 +71,7 @@ async function openSession(mode: SessionModes | null) {
       public_id: session.quiz.public_id,
       title: session.quiz.title,
     })
-    navigateTo('/instructor/session/entry')
+    navigateTo('/instructor/session/game')
     hideOpenSession()
   } catch (error) {
     console.error(error)
