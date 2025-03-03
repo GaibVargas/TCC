@@ -29,7 +29,7 @@ export class Session {
     this.quiz_manager = new QuizManager(quiz)
     this.sockets = {
       instructor: null,
-      participants: new Map()
+      participants: new Map(),
     }
   }
 
@@ -43,6 +43,34 @@ export class Session {
 
   start(): void {
     this.status = SessionStatus.SHOWING_QUESTION
+    this.sendStateUpdates()
+  }
+
+  nextStep(): void {
+    switch (this.status) {
+      case SessionStatus.WAITING_START:
+        this.status = SessionStatus.SHOWING_QUESTION
+        this.quiz_manager.startCurrentQuestion()
+        break
+      case SessionStatus.SHOWING_QUESTION:
+        this.status = SessionStatus.FEEDBACK_QUESTION
+        break
+      case SessionStatus.FEEDBACK_QUESTION:
+        this.status = SessionStatus.FEEDBACK_SESSION
+        break
+      case SessionStatus.FEEDBACK_SESSION:
+        const question = this.quiz_manager.getCurrentQuestion()
+        const next_question = this.quiz_manager.getNextQuestion()
+        if (question.public_id === next_question.public_id) {
+          this.status = SessionStatus.ENDING
+        } else {
+          this.status = SessionStatus.SHOWING_QUESTION
+          this.quiz_manager.startCurrentQuestion()
+        }
+        break
+      default:
+        break
+    }
     this.sendStateUpdates()
   }
 
@@ -69,7 +97,10 @@ export class Session {
         ...base,
         status: SessionStatus.SHOWING_QUESTION,
         question,
-        ready_participants: this.quiz_manager.getParticipantsThatAnsweredQuestion(question.public_id),
+        ready_participants:
+          this.quiz_manager.getParticipantsThatAnsweredQuestion(
+            question.public_id,
+          ),
       }
     }
 
@@ -78,7 +109,21 @@ export class Session {
         ...base,
         status: SessionStatus.FEEDBACK_QUESTION,
         question,
-        feedback: this.quiz_manager.getInstructorQuestionFeedback(question.public_id)
+        feedback: this.quiz_manager.getInstructorQuestionFeedback(
+          question.public_id,
+        ),
+      }
+    }
+
+    if (this.status === SessionStatus.FEEDBACK_SESSION) {
+      return {
+        ...base,
+        status: SessionStatus.FEEDBACK_SESSION,
+        ranking: [
+          { name: 'Nome 1', points: 123456 },
+          { name: 'Nome 2', points: 12345 },
+          { name: 'Nome 3', points: 1234 },
+        ],
       }
     }
 
@@ -112,6 +157,10 @@ export class Session {
         ...base,
         status: SessionStatus.SHOWING_QUESTION,
         question,
+        answered: this.quiz_manager.participantHasAnsweredQuestion(
+          user_public_id,
+          question.public_id,
+        ),
       }
     }
 
@@ -120,7 +169,22 @@ export class Session {
         ...base,
         status: SessionStatus.FEEDBACK_QUESTION,
         question,
-        feedback: this.quiz_manager.getParticipantQuestionFeedback(user_public_id, question.public_id)
+        feedback: this.quiz_manager.getParticipantQuestionFeedback(
+          user_public_id,
+          question.public_id,
+        ),
+      }
+    }
+
+    if (this.status === SessionStatus.FEEDBACK_SESSION) {
+      return {
+        ...base,
+        status: SessionStatus.FEEDBACK_SESSION,
+        ranking: [
+          { name: 'Nome 1', points: 123456 },
+          { name: 'Nome 2', points: 12345 },
+          { name: 'Nome 3', points: 1234 },
+        ],
       }
     }
 
@@ -140,7 +204,10 @@ export class Session {
       'game:instructor:update-state',
       this.getInstructorState(),
     )
-    for (const [user_public_id, socket] of this.sockets.participants.entries()) {
+    for (const [
+      user_public_id,
+      socket,
+    ] of this.sockets.participants.entries()) {
       socket.emit(
         'game:participant:update-state',
         this.getParticipantState(user_public_id),

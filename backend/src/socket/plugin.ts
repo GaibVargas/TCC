@@ -41,8 +41,7 @@ const socketIOPlugin: FastifyPluginCallback = (fastify, _options, done) => {
   io.on('connection', (socket) => {
     console.log('Client connected')
     registerSocketHandlers(io, socket)
-    socket.on('disconnect', (a) => {
-      console.log(a)
+    socket.on('disconnect', () => {
       console.log('Client disconnected')
     })
   })

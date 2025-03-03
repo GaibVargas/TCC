@@ -76,10 +76,12 @@ interface InstructorSessionShowingQuestionState extends SessionBaseState {
   ready_participants: string[]
 }
 
-type ParticipantSessionShowingQuestionState = Omit<
+interface ParticipantSessionShowingQuestionState extends Omit<
   InstructorSessionShowingQuestionState,
   'ready_participants'
->
+> {
+  answered: boolean
+}
 
 export interface InstructorSessionQuestionFeedback {
   correct_answer: string

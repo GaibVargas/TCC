@@ -82,6 +82,12 @@ export class QuizManager {
     else question_answers.push(answer)
   }
 
+  participantHasAnsweredQuestion(user_public_id: string, question_public_id: string): boolean {
+    const answers = this.answers.get(question_public_id)
+    if (!answers) return false
+    return answers.some(a => a.user_public_id === user_public_id)
+  }
+
   getParticipantsThatAnsweredQuestion(question_public_id: string): string[] {
     const answers = this.answers.get(question_public_id)
     if (!answers) return []
