@@ -1,18 +1,13 @@
 import { Server, Socket } from 'socket.io'
 import { MinUser } from '../entities/user/type'
 import { EventsMap } from 'socket.io/dist/typed-events'
-import { InstructorSessionState, ParticipantSessionState, QuestionAnswer, SessionIdentification, SessionParticipants, SessionParticipantsQuestionAnswered } from '../entities/session/type'
+import { InstructorSessionState, ParticipantSessionState, SessionIdentification, SessionParticipants, SessionParticipantsQuestionAnswered } from '../entities/session/type'
 
 export interface ClientToServerEvents {
   'instructor:join': (payload: SessionIdentification) => Promise<void>
   'instructor:leave': (payload: SessionIdentification) => Promise<void>
-
   'participant:join': (payload: SessionIdentification) => Promise<void>
   'participant:leave': (payload: SessionIdentification) => Promise<void>
-
-  'game:start': (payload: SessionIdentification) => Promise<void>
-  'game:next-step': (payload: SessionIdentification) => Promise<void>
-  'game:question-answer': (payload: QuestionAnswer) => Promise<void>
 }
 
 export interface ServerToClientEvents {

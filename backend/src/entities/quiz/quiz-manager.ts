@@ -1,5 +1,5 @@
-import { Question, QuestionType, Quiz } from '../../quiz/type'
-import { InstructorSessionQuestionFeedback, ParticipantSessionQuestionFeedback, SessionQuestion, SessionQuiz } from '../type'
+import { Question, QuestionType, Quiz } from './type'
+import { InstructorSessionQuestionFeedback, ParticipantSessionQuestionFeedback, SessionQuestion, SessionQuiz } from '../session/type'
 
 type AnswerFeedback = {
   is_correct: boolean

@@ -135,7 +135,7 @@ export class SessionsManager {
     session.start()
   }
 
-  nextStepSession(code: string): void {
+  sessionNextStep(code: string): void {
     const session = this.getSession(code)
     session.nextStep()
   }

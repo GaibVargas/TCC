@@ -6,7 +6,7 @@ import {
 import { generateRandomString } from '../../utils/string'
 import { Quiz } from '../quiz/type'
 import { MinUser } from '../user/type'
-import { QuizManager } from './utils/quiz-manager'
+import { QuizManager } from '../quiz/quiz-manager'
 import { CustomSocket } from '../../socket/types'
 
 export class Session {
@@ -72,6 +72,11 @@ export class Session {
         break
     }
     this.sendStateUpdates()
+  }
+
+  answerQuestion(user_public_id: string, question_public_id: string, answer: string): void {
+    if (this.status !== SessionStatus.SHOWING_QUESTION) return
+    this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer)
   }
 
   private getParticipantsId(): string[] {

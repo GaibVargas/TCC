@@ -7,11 +7,15 @@ export default function sessionRoutes(
   _options: unknown,
 ): void {
   fastify.register(authenticationPlugin)
-  fastify.register(instructorSessionRoutes)
   fastify.get('/sync/:code', sessionControllers.getSessionState)
+  fastify.post('/answer', sessionControllers.answerSessionQuestion)
+
+  fastify.register(instructorSessionRoutes)
 }
 
 function instructorSessionRoutes(fastify: FastifyInstance, _options: unknown): void {
   fastify.register(isInstructorPlugin)
   fastify.post('/', sessionControllers.createSession)
+  fastify.post('/start/:code', sessionControllers.startSession)
+  fastify.post('/next-step/:code', sessionControllers.sessionNextStep)
 }

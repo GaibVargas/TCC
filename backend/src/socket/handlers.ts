@@ -43,21 +43,3 @@ export async function participantLeave(
   sessions_manager.participantLeaveSession(payload.code, socket.data.user)
   console.log(socket.data.user.public_id, '[p] leave in', payload.code)
 }
-
-export async function gameStart(
-  io: CustomServer,
-  socket: CustomSocket,
-  payload: SessionIdentification,
-): Promise<void> {
-  await delay(1)
-  sessions_manager.startSession(payload.code)
-}
-
-export async function gameNextStep(
-  io: CustomServer,
-  socket: CustomSocket,
-  payload: SessionIdentification,
-): Promise<void> {
-  await delay(1)
-  sessions_manager.nextStepSession(payload.code)
-}

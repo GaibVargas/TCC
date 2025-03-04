@@ -11,6 +11,11 @@ export const create_session_payload_schema = z.object({
   mode: z.nativeEnum(SessionModes),
 })
 
+export const answer_session_question_schema = z.object({
+  question_public_id: z.string(),
+  answer: z.string(),
+})
+
 export type SessionCreatePayload = {
   code: string
   quiz: Pick<Quiz, "public_id" | "title">
@@ -23,12 +28,6 @@ export interface SessionIdentification {
 export interface SessionQuiz {
   public_id: string
   title: string
-}
-
-export interface QuestionAnswer extends SessionIdentification {
-  quiz: SessionQuiz
-  question_public_id: string
-  answer: string
 }
 
 export interface SessionParticipants extends SessionIdentification {
