@@ -7,8 +7,11 @@ export default function sessionRoutes(
   _options: unknown,
 ): void {
   fastify.register(authenticationPlugin)
-  fastify.register(isInstructorPlugin)
+  fastify.register(instructorSessionRoutes)
+  fastify.get('/sync/:code', sessionControllers.getSessionState)
+}
 
+function instructorSessionRoutes(fastify: FastifyInstance, _options: unknown): void {
+  fastify.register(isInstructorPlugin)
   fastify.post('/', sessionControllers.createSession)
-  fastify.get('/sync/:code', { config: { skipRole: true } }, sessionControllers.getSessionState)
 }

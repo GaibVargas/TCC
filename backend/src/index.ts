@@ -31,6 +31,7 @@ const prismaErrors = [
   Prisma.PrismaClientRustPanicError,
 ]
 server.setErrorHandler((error, _request, reply) => {
+  console.log('peguei')
   server.log.error(error)
 
   if (error instanceof HttpRequestError) {
@@ -97,6 +98,11 @@ server.register(userRoutes, { prefix: '/user' })
 server.register(quizRoutes, { prefix: '/quiz' })
 server.register(sessionRoutes, { prefix: '/session' })
 
+server.ready((err) => {
+  if (err) throw err
+  console.info(server.printRoutes({ commonPrefix: false, includeHooks: true }))
+})
+
 const start = async (): Promise<void> => {
   try {
     await prisma.$connect()
@@ -104,10 +110,21 @@ const start = async (): Promise<void> => {
   } catch (err) {
     server.log.error(err)
     await prisma.$disconnect()
-    process.exit(1)
   }
 }
 
 start()
   .then()
-  .catch((error) => console.error(error))
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
+
+process.on('uncaughtException', (error) => {
+  if (server.log) server.log.error('Uncaught Exception:', error)
+  console.error('Uncaught Exception:', error)
+})
+process.on('unhandledRejection', (reason) => {
+  if (server.log) server.log.error('Unhandled Rejection:', reason)
+  console.error('Unhandled Rejection:', reason)
+})
