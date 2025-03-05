@@ -13,18 +13,18 @@ export default class LTIControllers {
     this.ltiService = ltiService
   }
 
-  async startLauch(req: FastifyRequest, res: FastifyReply): Promise<void> {
+  async startLauch(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     const LTI_REDIRECT_URL = await this.ltiService.startLaunch(req.body)
-    res.redirect(LTI_REDIRECT_URL)
+    reply.redirect(LTI_REDIRECT_URL)
   }
 
   async login(
     req: FastifyRequest,
-    res: FastifyReply,
+    reply: FastifyReply,
   ): Promise<void> {
     const ltiUser = await this.ltiService.getUser(req.body)
     const user = await updateOrCreateUser(ltiUser)
     const auth_token = getUserAuthToken(user)
-    res.redirect(`${config.host.FRONTEND_URL}/auth/${auth_token}`)
+    reply.redirect(`${config.host.FRONTEND_URL}/auth/${auth_token}`)
   }
 }

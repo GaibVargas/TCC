@@ -9,6 +9,8 @@ export default function sessionRoutes(
   fastify.register(authenticationPlugin)
   fastify.get('/sync/:code', sessionControllers.getSessionState)
   fastify.post('/answer', sessionControllers.answerSessionQuestion)
+  fastify.post('/join/:code', sessionControllers.participantJoinSession)
+  fastify.post('/leave/:code', sessionControllers.participantLeaveSession)
 
   fastify.register(instructorSessionRoutes)
 }

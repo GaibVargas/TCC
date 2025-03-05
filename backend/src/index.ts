@@ -31,7 +31,6 @@ const prismaErrors = [
   Prisma.PrismaClientRustPanicError,
 ]
 server.setErrorHandler((error, _request, reply) => {
-  console.log('peguei')
   server.log.error(error)
 
   if (error instanceof HttpRequestError) {

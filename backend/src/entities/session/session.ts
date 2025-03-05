@@ -74,7 +74,11 @@ export class Session {
     this.sendStateUpdates()
   }
 
-  answerQuestion(user_public_id: string, question_public_id: string, answer: string): void {
+  answerQuestion(
+    user_public_id: string,
+    question_public_id: string,
+    answer: string,
+  ): void {
     if (this.status !== SessionStatus.SHOWING_QUESTION) return
     this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer)
   }
@@ -238,9 +242,17 @@ export class Session {
 
   addParticipant(user: MinUser): void {
     this.participants.set(user.public_id, user)
+    this.sockets.instructor?.emit('game:instructor:participant-join', {
+      code: this.code,
+      participants: this.getParticipantsId(),
+    })
   }
 
   removeParticipant(user: MinUser): void {
     this.participants.delete(user.public_id)
+    this.sockets.instructor?.emit('game:instructor:participant-join', {
+      code: this.code,
+      participants: this.getParticipantsId(),
+    })
   }
 }

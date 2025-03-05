@@ -4,9 +4,9 @@ import { config } from '../config/env'
 import { minUserSchema, UserRoles } from '../entities/user/type'
 import fastifyPlugin from 'fastify-plugin'
 
-function authenticationMiddleware(req: FastifyRequest, reply: FastifyReply): void {
+function authenticationMiddleware(req: FastifyRequest, reply: FastifyReply, done: () => void): void {
   if (req.routeOptions.config.skipAuth) {
-    return
+    return done()
   }
 
   const access_token = req.headers.authorization
@@ -14,15 +14,15 @@ function authenticationMiddleware(req: FastifyRequest, reply: FastifyReply): voi
     reply
       .status(400)
       .send({ message: 'Authorization token is required' })
-    return 
+    return done()
   }
   const token = verifyToken(access_token, config.auth.ACCESS_TOKEN_SECRET)
   if (!token.valid) {
     reply.status(401).send({ message: token.error })
-    return 
+    return done()
   }
   req.user = minUserSchema.parse(token.decoded)
-  return
+  return done()
 }
 
 const authenticationPluginCb: FastifyPluginCallback = (fastify, _opts, done) => {
@@ -31,23 +31,24 @@ const authenticationPluginCb: FastifyPluginCallback = (fastify, _opts, done) => 
 }
 export const authenticationPlugin = fastifyPlugin(authenticationPluginCb, { name: 'authenticationPlugin' })
 
-function isInstructorMiddleware(req: FastifyRequest, reply: FastifyReply): void {
+function isInstructorMiddleware(req: FastifyRequest, reply: FastifyReply, done: () => void): void {
   if (req.routeOptions.config.skipAuth || req.routeOptions.config.skipRole) {
-    return
+    return done()
   }
   if (!req.user) {
     reply
       .status(401)
       .send({ message: 'Unauthorized' })
-    return 
+    return done()
   }
 
   if (req.user.role !== UserRoles.INSTRUCTOR) {
     reply
       .status(401)
       .send({ message: 'Unauthorized' })
-    return 
+    return done()
   }
+  return done()
 }
 
 const isInstructorPluginCb: FastifyPluginCallback = (fastify, _opts, done) => {

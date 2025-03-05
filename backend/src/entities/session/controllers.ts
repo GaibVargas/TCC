@@ -30,34 +30,36 @@ export async function createSession(
 
 export function startSession(
   req: FastifyRequest<{ Params: { code: string } }>,
-  _reply: FastifyReply,
+  reply: FastifyReply,
 ): void {
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
-  if (session.isValidInstructor(req.user.public_id)) {
+  if (!session.isValidInstructor(req.user.public_id)) {
     throw new HttpRequestError({
       status_code: 401,
       message: 'Unauthorized',
     })
   }
   sessions_manager.startSession(req.params.code)
+  reply.status(204).send()
 }
 
 export function sessionNextStep(
   req: FastifyRequest<{ Params: { code: string } }>,
-  _reply: FastifyReply,
+  reply: FastifyReply,
 ): void {
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
-  if (session.isValidInstructor(req.user.public_id)) {
+  if (!session.isValidInstructor(req.user.public_id)) {
     throw new HttpRequestError({
       status_code: 401,
       message: 'Unauthorized',
     })
   }
   sessions_manager.sessionNextStep(req.params.code)
+  reply.status(204).send()
 }
 
 export function getSessionState(
@@ -75,6 +77,28 @@ export function getSessionState(
     status_code: 400,
     message: 'Session not found',
   })
+}
+
+export function participantJoinSession(
+  req: FastifyRequest<{ Params: { code: string } }>,
+  reply: FastifyReply,
+): void {
+  userVerify(req.user)
+  const sessions_manager = SessionsManager.getInstance()
+  const session = sessions_manager.getSession(req.params.code)
+  session.addParticipant(req.user)
+  reply.status(204).send()
+}
+
+export function participantLeaveSession(
+  req: FastifyRequest<{ Params: { code: string } }>,
+  reply: FastifyReply,
+): void {
+  userVerify(req.user)
+  const sessions_manager = SessionsManager.getInstance()
+  const session = sessions_manager.getSession(req.params.code)
+  session.removeParticipant(req.user)
+  reply.status(204).send()
 }
 
 export function answerSessionQuestion(
@@ -104,6 +128,8 @@ const sessionControllers = {
   startSession,
   sessionNextStep,
   answerSessionQuestion,
+  participantJoinSession,
+  participantLeaveSession,
 }
 
 export default sessionControllers

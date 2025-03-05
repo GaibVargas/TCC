@@ -4,10 +4,10 @@ import { EventsMap } from 'socket.io/dist/typed-events'
 import { InstructorSessionState, ParticipantSessionState, SessionIdentification, SessionParticipants, SessionParticipantsQuestionAnswered } from '../entities/session/type'
 
 export interface ClientToServerEvents {
-  'instructor:join': (payload: SessionIdentification) => Promise<void>
-  'instructor:leave': (payload: SessionIdentification) => Promise<void>
-  'participant:join': (payload: SessionIdentification) => Promise<void>
-  'participant:leave': (payload: SessionIdentification) => Promise<void>
+  'instructor:connect': (payload: SessionIdentification) => Promise<void>
+  'instructor:disconnect': (payload: SessionIdentification) => Promise<void>
+  'participant:connect': (payload: SessionIdentification) => Promise<void>
+  'participant:disconnect': (payload: SessionIdentification) => Promise<void>
 }
 
 export interface ServerToClientEvents {
