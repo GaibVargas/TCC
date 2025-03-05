@@ -3,7 +3,6 @@ export const useSocket = (connect = true) => {
   const auth = useAuthStore()
 
   onMounted(() => {
-    console.log('socket mount')
     if(!socket.connected && connect) {
       socket.auth.access_token = auth.access_token
       socket.connect()
@@ -12,7 +11,7 @@ export const useSocket = (connect = true) => {
     socket.on('connect', () => {
       console.log('connect')
     })
-    socket.on('disconnet', () => {
+    socket.on('disconnect', () => {
       console.log('disconnect')
     })
   })

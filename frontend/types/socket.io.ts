@@ -2,15 +2,11 @@ import { Socket } from "socket.io-client"
 import type { InstructorSessionState, ParticipantSessionState, QuestionAnswer, SessionIdentification, SessionParticipants, SessionParticipantsQuestionAnswered } from "./session"
 
 export interface EmitEvents {
-  'instructor:join': (payload: SessionIdentification) => void
-  'instructor:leave': (payload: SessionIdentification) => void
+  'instructor:connect': (payload: SessionIdentification) => void
+  'instructor:disconnect': (payload: SessionIdentification) => void
 
-  'participant:join': (payload: SessionIdentification) => void
-  'participant:leave': (payload: SessionIdentification) => void
-
-  'game:start': (payload: SessionIdentification) => void
-  'game:next-step': (payload: SessionIdentification) => void
-  'game:question-answer': (payload: QuestionAnswer) => void
+  'participant:connect': (payload: SessionIdentification) => void
+  'participant:disconnect': (payload: SessionIdentification) => void
 }
 
 export interface ListenEvents {

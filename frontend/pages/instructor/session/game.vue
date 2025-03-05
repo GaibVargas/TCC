@@ -18,27 +18,27 @@ const base_session: InstructorSessionState = {
 
 const session = ref<InstructorSessionState>(base_session)
 
-function cancel() {
-  console.log('Cancel session')
-}
+const socket = useSocket()
+socket.emit('instructor:connect', { code: session_store.code })
 
 const { data, error } = await useApiUseFetch<InstructorSessionState>(`/session/sync/${session_store.code}`)
 if (data.value) {
   session.value = data.value
 }
 
-const socket = useSocket()
-socket.emit('instructor:join', { code: session_store.code })
-
 onMounted(() => {
   socket.on('game:instructor:update-state', (payload) => {
     console.log('from socket', payload)
+    loadingStart.value = false
+    loadingNextStep.value = false
     session.value = payload
   })
   socket.on('game:instructor:participant-join', (payload) => {
+    console.log('from socket', payload)
     session.value.participants = payload.participants
   })
   socket.on('game:instructor:participant-leave', (payload) => {
+    console.log('from socket', payload)
     session.value.participants = payload.participants
   })
 })
@@ -49,18 +49,42 @@ onBeforeUnmount(() => {
   socket.removeListener('game:instructor:participant-leave')
 })
 
-function startSession() {
-  socket.emit("game:start", { code: session_store.code })
+function cancel() {
+  console.log('Cancel session')
 }
 
-function sessionNextStep() {
-  socket.emit("game:next-step", { code: session_store.code })
+const loadingStart = ref(false)
+async function startSession() {
+  try {
+    loadingStart.value = true
+    await delay()
+    await useApiFetch(`/session/start/${session.value.code}`, {
+      method: 'POST'
+    })
+  } catch (error) {
+    console.error(error)
+    useNuxtApp().$toast.error('Erro ao abrir sessão. Tente novamente mais tarde')
+  }
+}
+
+const loadingNextStep = ref(false)
+async function sessionNextStep() {
+  try {
+    loadingNextStep.value = true
+    await delay()
+    await useApiFetch(`/session/next-step/${session.value.code}`, {
+      method: 'POST'
+    })
+  } catch (error) {
+    console.error(error)
+    useNuxtApp().$toast.error('Erro ao continuar sessão. Tente novamente mais tarde')
+  }
 }
 </script>
 
 <template>
   <v-container fluid class="ma-0 pa-sm-4 pa-md-8 fill-height flex-column">
-    <InstructorSessionEntry v-if="session.status === SessionStatus.WAITING_START" v-bind="session"
+    <InstructorSessionEntry v-if="session.status === SessionStatus.WAITING_START" v-bind:session="session" :loading="loadingStart"
       @start="startSession" />
     <InstructorSessionQuestion v-else-if="session.status === SessionStatus.SHOWING_QUESTION" v-bind="session" />
     <InstructorSessionQuestionFeedback v-else-if="session.status === SessionStatus.FEEDBACK_QUESTION"
@@ -71,7 +95,7 @@ function sessionNextStep() {
   </v-container>
   <div v-if="session.status !== SessionStatus.WAITING_START"
     class="border-t-thin py-2 w-100 d-flex ga-8 align-center justify-center">
-    <v-btn variant="outlined" @click="cancel">Cancelar</v-btn>
-    <v-btn color="primary" @click="sessionNextStep">Avançar</v-btn>
+    <v-btn variant="outlined" @click="cancel" :disabled="loadingNextStep">Cancelar</v-btn>
+    <v-btn color="primary" @click="sessionNextStep" :loading="loadingNextStep">{{ session.status === SessionStatus.ENDING ? 'Encerrar' : 'Avançar' }}</v-btn>
   </div>
 </template>

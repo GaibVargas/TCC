@@ -20,8 +20,17 @@ async function enterSession() {
   const result = await session_ref.value.validate()
   if (result.length) return
   const session = useSessionStore()
-  session.setCode(code.value)
-  navigateTo('/session/game')
+  try {
+    loading.value = true
+    await useApiFetch(`/session/join/${code.value}`, { method: 'POST' })
+    session.setCode(code.value)
+    navigateTo('/session/game')
+  } catch (error) {
+    console.error(error)
+    useNuxtApp().$toast.error('Erro ao entrar na sessão. Tente novamente mais tarde.')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

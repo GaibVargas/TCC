@@ -17,15 +17,12 @@ export default defineNuxtPlugin((nuxtApp) => {
   })
 
   socket.on('connect_error', async(error) => {
-    console.log(socket.auth)
     if (error.message === 'Authorization token is required') {
-      console.log('Auth is required')
       auth.logout()
       router.push('/')
       return
     }
     if (error.message === 'Token has expired') {
-      console.log('Refreshing')
       if (!refreshPromise) refreshPromise = auth.refreshToken
       if (refreshPromise) {
         const result = await refreshPromise()
@@ -34,7 +31,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         return socket.connect()
       }
     }
-    console.log('socket error', error)
+    useNuxtApp().$toast.error('Erro desconhecido ao conectar a sessão.')
+    console.error('socket unknown error', error)
   })
 
   nuxtApp.provide('socket', socket)

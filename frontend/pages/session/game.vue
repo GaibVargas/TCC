@@ -17,7 +17,7 @@ const session = ref<ParticipantSessionState>({
 })
 
 const socket = useSocket()
-socket.emit('participant:join', { code: session_store.code })
+socket.emit('participant:connect', { code: session_store.code })
 
 const { data, error } = await useApiUseFetch<ParticipantSessionState>(`/session/sync/${session_store.code}`)
 if (data.value) {

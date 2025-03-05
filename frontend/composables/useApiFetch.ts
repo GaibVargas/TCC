@@ -1,23 +1,52 @@
+import type { FetchOptions } from "ofetch"
+
 let refreshPromise: (() => Promise<boolean>) | null = null
 
-export const useApiFetch = async <T>(path: string, options?: any) => {
+const validMethods = [
+  "GET",
+  "HEAD",
+  "PATCH",
+  "POST",
+  "PUT",
+  "DELETE",
+  "CONNECT",
+  "OPTIONS",
+  "TRACE",
+  "get",
+  "head",
+  "patch",
+  "post",
+  "put",
+  "delete",
+  "connect",
+  "options",
+  "trace",
+] as const
+type ValidMethod = (typeof validMethods)[number]
+
+export const useApiFetch = async <T>(
+  path: string,
+  options?: FetchOptions & { method?: ValidMethod }
+) => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBaseUrl
   const headers = useApiRequestHeaders()
   const authStore = useAuthStore()
   try {
-    return await $fetch<T>(path, {
+    const result = await $fetch<T>(path, {
       baseURL,
       ...options,
+      method: options?.method ?? "GET",
       headers: {
         ...options?.headers,
         ...headers,
       },
     })
+    return result
   } catch (error: any) {
     if (
       error.response?.status === 401 &&
-      error.response?._data?.message === 'Token has expired'
+      error.response?._data?.message === "Token has expired"
     ) {
       if (!refreshPromise) {
         refreshPromise = authStore.refreshToken
@@ -29,6 +58,7 @@ export const useApiFetch = async <T>(path: string, options?: any) => {
       return await $fetch<T>(path, {
         baseURL,
         ...options,
+        method: options?.method ?? "GET",
         headers: {
           ...options?.headers,
           ...newHeaders,
