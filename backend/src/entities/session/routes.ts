@@ -8,7 +8,7 @@ export default function sessionRoutes(
 ): void {
   fastify.register(authenticationPlugin)
   fastify.get('/sync/:code', sessionControllers.getSessionState)
-  fastify.post('/answer', sessionControllers.answerSessionQuestion)
+  fastify.post('/answer/:code', sessionControllers.answerSessionQuestion)
   fastify.post('/join/:code', sessionControllers.participantJoinSession)
   fastify.post('/leave/:code', sessionControllers.participantLeaveSession)
 

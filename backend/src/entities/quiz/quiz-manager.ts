@@ -39,7 +39,7 @@ export class QuizManager {
       description: question.description,
       type: question.type,
       time_limit: question.time_limit,
-      index: this.current_question,
+      index: this.current_question + 1,
       total: this.quiz.questions.length,
       options: question.options.map(({ public_id, description }) => ({ public_id, description })),
       startedAt: this.questions_start_time.get(question.public_id) ?? 0,

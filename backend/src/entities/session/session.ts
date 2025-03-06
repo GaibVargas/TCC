@@ -81,6 +81,11 @@ export class Session {
   ): void {
     if (this.status !== SessionStatus.SHOWING_QUESTION) return
     this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer)
+    this.sockets.instructor?.emit("game:instructor:question-answer", {
+      code: this.code,
+      question_public_id: question_public_id,
+      ready_participants: this.quiz_manager.getParticipantsThatAnsweredQuestion(question_public_id),
+    })
   }
 
   private getParticipantsId(): string[] {
