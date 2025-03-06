@@ -34,6 +34,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   socket.removeListener('game:participant:update-state')
 })
+
+const ranking_label = computed(() => {
+  if (session.value.status === SessionStatus.ENDING) return 'Ranking Final'
+  if (session.value.status === SessionStatus.FEEDBACK_SESSION) return `Ranking Top ${session.value.ranking.length}`
+  return ''
+})
 </script>
 
 <template>
@@ -46,6 +52,7 @@ onBeforeUnmount(() => {
       :feedback="session.feedback" />
     <SessionRanking
       v-else-if="session.status === SessionStatus.FEEDBACK_SESSION || session.status === SessionStatus.ENDING"
-      class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking" />
+      class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking"
+      :label="ranking_label" />
   </v-container>
 </template>

@@ -24,9 +24,22 @@ function setAnswer(value: string): void {
   sendAnswer()
 }
 
-function sendAnswer() {
-  console.log('send answer', answer.value)
+const session = useSessionStore()
+async function sendAnswer() {
   sended.value = true
+  try {
+    await useApiFetch(`/session/answer/${session.code}`, {
+      method: 'POST',
+      body: {
+        question_public_id: props.question.public_id,
+        answer: answer.value.trim()
+      }
+    })    
+  } catch (error) {
+    console.error(error)
+    useNuxtApp().$toast.error('Erro desconhecido ao responder questão.')
+    sended.value = false
+  }
 }
 </script>
 

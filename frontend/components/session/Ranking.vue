@@ -1,15 +1,18 @@
 <script lang="ts" setup>
 const props = defineProps<{
+  label?: string
   ranking: {
     name: string
     points: number
   }[]
 }>()
+
+const label = computed(() => props.label ?? 'Ranking')
 </script>
 
 <template>
   <v-container fluid class="ma-0 pa-0">
-    <h2>Ranking</h2>
+    <h2>{{ label }}</h2>
     <v-icon size="x-large" class="icon">mdi-crown</v-icon>
     <v-list class="pa-4 border-thin border-opacity-50 rounded w-100" style="max-width: 600px;">
       <v-list-item v-for="position in ranking">

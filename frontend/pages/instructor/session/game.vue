@@ -27,12 +27,6 @@ if (data.value) {
 }
 
 onMounted(() => {
-  socket.on('game:instructor:update-state', (payload) => {
-    console.log('from socket', payload)
-    loadingStart.value = false
-    loadingNextStep.value = false
-    session.value = payload
-  })
   socket.on('game:instructor:participant-join', (payload) => {
     console.log('from socket', payload)
     session.value.participants = payload.participants
@@ -41,12 +35,24 @@ onMounted(() => {
     console.log('from socket', payload)
     session.value.participants = payload.participants
   })
+  socket.on('game:instructor:update-state', (payload) => {
+    console.log('from socket', payload)
+    loadingStart.value = false
+    loadingNextStep.value = false
+    session.value = payload
+  })
+  socket.on("game:instructor:question-answer", (payload) => {
+    if (session.value.status !== SessionStatus.SHOWING_QUESTION) return
+    if (session.value.question.public_id !== payload.question_public_id) return
+    session.value.ready_participants = payload.ready_participants
+  })
 })
 
 onBeforeUnmount(() => {
-  socket.removeListener('game:instructor:update-state')
   socket.removeListener('game:instructor:participant-join')
   socket.removeListener('game:instructor:participant-leave')
+  socket.removeListener('game:instructor:update-state')
+  socket.removeListener('game:instructor:question-answer')
 })
 
 function cancel() {
@@ -57,7 +63,6 @@ const loadingStart = ref(false)
 async function startSession() {
   try {
     loadingStart.value = true
-    await delay()
     await useApiFetch(`/session/start/${session.value.code}`, {
       method: 'POST'
     })
@@ -71,7 +76,6 @@ const loadingNextStep = ref(false)
 async function sessionNextStep() {
   try {
     loadingNextStep.value = true
-    await delay()
     await useApiFetch(`/session/next-step/${session.value.code}`, {
       method: 'POST'
     })
@@ -80,22 +84,30 @@ async function sessionNextStep() {
     useNuxtApp().$toast.error('Erro ao continuar sessão. Tente novamente mais tarde')
   }
 }
+
+const ranking_label = computed(() => {
+  if (session.value.status === SessionStatus.ENDING) return 'Ranking Final'
+  if (session.value.status === SessionStatus.FEEDBACK_SESSION) return `Ranking Top ${session.value.ranking.length}`
+  return ''
+})
 </script>
 
 <template>
   <v-container fluid class="ma-0 pa-sm-4 pa-md-8 fill-height flex-column">
-    <InstructorSessionEntry v-if="session.status === SessionStatus.WAITING_START" v-bind:session="session" :loading="loadingStart"
-      @start="startSession" />
+    <InstructorSessionEntry v-if="session.status === SessionStatus.WAITING_START" v-bind:session="session"
+      :loading="loadingStart" @start="startSession" />
     <InstructorSessionQuestion v-else-if="session.status === SessionStatus.SHOWING_QUESTION" v-bind="session" />
     <InstructorSessionQuestionFeedback v-else-if="session.status === SessionStatus.FEEDBACK_QUESTION"
       v-bind="session" />
     <SessionRanking
       v-else-if="session.status === SessionStatus.FEEDBACK_SESSION || session.status === SessionStatus.ENDING"
-      class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking" />
+      class="flex-fill d-flex flex-column align-center justify-center" :ranking="session.ranking"
+      :label="ranking_label" />
   </v-container>
   <div v-if="session.status !== SessionStatus.WAITING_START"
     class="border-t-thin py-2 w-100 d-flex ga-8 align-center justify-center">
     <v-btn variant="outlined" @click="cancel" :disabled="loadingNextStep">Cancelar</v-btn>
-    <v-btn color="primary" @click="sessionNextStep" :loading="loadingNextStep">{{ session.status === SessionStatus.ENDING ? 'Encerrar' : 'Avançar' }}</v-btn>
+    <v-btn color="primary" @click="sessionNextStep" :loading="loadingNextStep">{{ session.status ===
+      SessionStatus.ENDING ? 'Encerrar' : 'Avançar' }}</v-btn>
   </div>
 </template>
