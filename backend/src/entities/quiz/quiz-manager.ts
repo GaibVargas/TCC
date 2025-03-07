@@ -1,5 +1,10 @@
 import { Question, QuestionType, Quiz } from './type'
-import { InstructorSessionQuestionFeedback, ParticipantSessionQuestionFeedback, SessionQuestion, SessionQuiz } from '../session/type'
+import {
+  InstructorSessionQuestionFeedback,
+  ParticipantSessionQuestionFeedback,
+  SessionQuestion,
+  SessionQuiz,
+} from '../session/type'
 
 type AnswerFeedback = {
   is_correct: boolean
@@ -41,7 +46,10 @@ export class QuizManager {
       time_limit: question.time_limit,
       index: this.current_question + 1,
       total: this.quiz.questions.length,
-      options: question.options.map(({ public_id, description }) => ({ public_id, description })),
+      options: question.options.map(({ public_id, description }) => ({
+        public_id,
+        description,
+      })),
       startedAt: this.questions_start_time.get(question.public_id) ?? 0,
     }
   }
@@ -69,32 +77,48 @@ export class QuizManager {
     return this.getCurrentQuestion()
   }
 
-  answerQuestion(user_public_id: string, question_public_id: string, given_answer: string): void {
+  answerQuestion(
+    user_public_id: string,
+    question_public_id: string,
+    given_answer: string,
+    n_participants: number,
+  ): void {
     const question = this.getCurrentQuestion()
     if (question.public_id !== question_public_id) return
     const answer: Answer = {
       user_public_id,
       given_answer,
-      feedback: this.getAnswerFeedback(user_public_id, given_answer)
+      feedback: this.getAnswerFeedback(
+        user_public_id,
+        question_public_id,
+        given_answer,
+        n_participants,
+      ),
     }
     const question_answers = this.answers.get(question_public_id)
     if (!question_answers) this.answers.set(question_public_id, [answer])
     else question_answers.push(answer)
   }
 
-  participantHasAnsweredQuestion(user_public_id: string, question_public_id: string): boolean {
+  participantHasAnsweredQuestion(
+    user_public_id: string,
+    question_public_id: string,
+  ): boolean {
     const answers = this.answers.get(question_public_id)
     if (!answers) return false
-    return answers.some(a => a.user_public_id === user_public_id)
+    return answers.some((a) => a.user_public_id === user_public_id)
   }
 
   getParticipantsThatAnsweredQuestion(question_public_id: string): string[] {
     const answers = this.answers.get(question_public_id)
     if (!answers) return []
-    return Array.from(answers.map(a => a.user_public_id))
+    return Array.from(answers.map((a) => a.user_public_id))
   }
 
-  getParticipantQuestionFeedback(user_public_id: string, question_public_id: string): ParticipantSessionQuestionFeedback {
+  getParticipantQuestionFeedback(
+    user_public_id: string,
+    question_public_id: string,
+  ): ParticipantSessionQuestionFeedback {
     const default_feedback: ParticipantSessionQuestionFeedback = {
       correct_answer: '',
       given_answer: '',
@@ -103,15 +127,19 @@ export class QuizManager {
       streak_bonus: 0,
       velocity_bonus: 0,
     }
-    const question = this.quiz.questions.filter(q => q.public_id === question_public_id)[0]
+    const question = this.quiz.questions.filter(
+      (q) => q.public_id === question_public_id,
+    )[0]
     if (!question) return default_feedback
-  
+
     default_feedback.correct_answer = this.getQuestionCorrectAnswer(question)
-  
+
     const given_answers = this.answers.get(question_public_id)
     if (!given_answers) return default_feedback
 
-    const given_answer = given_answers.filter(a => a.user_public_id === user_public_id)[0]
+    const given_answer = given_answers.filter(
+      (a) => a.user_public_id === user_public_id,
+    )[0]
     if (!given_answer) return default_feedback
     return {
       correct_answer: default_feedback.correct_answer,
@@ -120,52 +148,116 @@ export class QuizManager {
     }
   }
 
-  getInstructorQuestionFeedback(question_public_id: string): InstructorSessionQuestionFeedback {
+  getInstructorQuestionFeedback(
+    question_public_id: string,
+  ): InstructorSessionQuestionFeedback {
     const default_feedback: InstructorSessionQuestionFeedback = {
       correct_answer: '',
-      answers: {}
+      answers: {},
     }
-    const question = this.quiz.questions.filter(q => q.public_id === question_public_id)[0]
+    const question = this.quiz.questions.filter(
+      (q) => q.public_id === question_public_id,
+    )[0]
     if (!question) return default_feedback
-    
+
     default_feedback.correct_answer = this.getQuestionCorrectAnswer(question)
 
     const answers = this.answers.get(question_public_id)
     if (!answers) return default_feedback
 
-    default_feedback.answers = answers.reduce((acc: Record<string, string[]>, answer) => {
-      const given_answer = answer.given_answer.toLocaleLowerCase()
-      if (!acc[given_answer]) acc[given_answer] = [answer.user_public_id]
-      else acc[given_answer].push(answer.user_public_id)
-      return acc
-    }, {})
-    
+    default_feedback.answers = answers.reduce(
+      (acc: Record<string, string[]>, answer) => {
+        const given_answer = answer.given_answer.toLocaleLowerCase()
+        if (!acc[given_answer]) acc[given_answer] = [answer.user_public_id]
+        else acc[given_answer].push(answer.user_public_id)
+        return acc
+      },
+      {},
+    )
+
     return default_feedback
   }
 
-  private getAnswerFeedback(user_public_id: string, given_answer: string): AnswerFeedback {
+  private getAnswerFeedback(
+    user_public_id: string,
+    question_public_id: string,
+    given_answer: string,
+    n_participants: number,
+  ): AnswerFeedback {
     const is_correct = this.isAnswerCorrect(given_answer)
     return {
       is_correct,
       points: is_correct ? 100 : 0,
-      // TODO
-      streak_bonus: 0,
-      velocity_bonus: 0,
+      streak_bonus: is_correct
+        ? this.getStreakBonus(user_public_id, question_public_id)
+        : 0,
+      velocity_bonus: is_correct
+        ? this.getVelocityBonus(question_public_id, n_participants)
+        : 0,
     }
   }
 
   private isAnswerCorrect(given_answer: string): boolean {
     const question = this.quiz.questions[this.current_question]
     const correct_answer = this.getQuestionCorrectAnswer(question)
-    return given_answer.toLocaleLowerCase() === correct_answer.toLocaleLowerCase()
+    return (
+      given_answer.toLocaleLowerCase() === correct_answer.toLocaleLowerCase()
+    )
   }
 
   private getQuestionCorrectAnswer(question: Question): string {
     if (question.type === QuestionType.TEXT) {
       return question.correct_text_answer
     }
-    const option = question.options.filter(o => o.is_correct_answer)[0]
+    const option = question.options.filter((o) => o.is_correct_answer)[0]
     if (!option) return ''
     return option.public_id
+  }
+
+  private getVelocityBonus(
+    question_public_id: string,
+    n_participants: number,
+  ): number {
+    return (
+      n_participants -
+      this.getParticipantsThatAnsweredQuestion(question_public_id).length
+    )
+  }
+
+  private getStreakBonus(
+    user_public_id: string,
+    question_public_id: string,
+  ): number {
+    const streak = this.getUserStreak(user_public_id, question_public_id)
+    if (streak < 1) return 0
+    if (streak < 2) return 10
+    return 20
+  }
+
+  private getUserStreak(
+    user_public_id: string,
+    question_public_id: string,
+  ): number {
+    const question_index = this.quiz.questions.findIndex(
+      (q) => q.public_id === question_public_id,
+    )
+
+    // Se for a primeira questão não há sequência de acertos
+    if (question_index <= 1) return 0
+
+    const longest_streak = 2
+    let streak = 0
+    let current_question_index = question_index - 1
+    while (streak < longest_streak && current_question_index >= 0) {
+      const question = this.quiz.questions[current_question_index]
+      const answers = this.answers.get(question.public_id)
+      if (!answers || !answers.length) break
+      const user_answer = answers.find(a => a.user_public_id === user_public_id)
+      if (!user_answer) break
+      if (!user_answer.feedback.is_correct) break
+      streak++
+      current_question_index--
+    }
+    return streak
   }
 }

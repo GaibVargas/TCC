@@ -11,7 +11,6 @@ import { CustomSocket } from '../../socket/types'
 
 export class Session {
   code: string
-  private instructor: MinUser
   private participants: Map<string, MinUser>
   private quiz_manager: QuizManager
   private status: SessionStatus
@@ -21,7 +20,7 @@ export class Session {
     participants: Map<string, CustomSocket>
   }
 
-  constructor(instructor: MinUser, quiz: Quiz) {
+  constructor(private instructor: MinUser, quiz: Quiz) {
     this.code = generateRandomString(6)
     this.instructor = instructor
     this.participants = new Map()
@@ -80,7 +79,7 @@ export class Session {
     answer: string,
   ): void {
     if (this.status !== SessionStatus.SHOWING_QUESTION) return
-    this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer)
+    this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer, this.getParticipantsId().length)
     this.sockets.instructor?.emit("game:instructor:question-answer", {
       code: this.code,
       question_public_id: question_public_id,
