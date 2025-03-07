@@ -82,7 +82,7 @@ export class QuizManager {
     question_public_id: string,
     given_answer: string,
     n_participants: number,
-  ): void {
+  ): Answer | undefined {
     const question = this.getCurrentQuestion()
     if (question.public_id !== question_public_id) return
     const answer: Answer = {
@@ -98,6 +98,7 @@ export class QuizManager {
     const question_answers = this.answers.get(question_public_id)
     if (!question_answers) this.answers.set(question_public_id, [answer])
     else question_answers.push(answer)
+    return answer
   }
 
   participantHasAnsweredQuestion(

@@ -1,6 +1,7 @@
 import {
   InstructorSessionState,
   ParticipantSessionState,
+  RankingType,
   SessionStatus,
 } from './type'
 import { generateRandomString } from '../../utils/string'
@@ -8,24 +9,30 @@ import { Quiz } from '../quiz/type'
 import { MinUser } from '../user/type'
 import { QuizManager } from '../quiz/quiz-manager'
 import { CustomSocket } from '../../socket/types'
+import { Ranking } from './ranking'
 
 export class Session {
   code: string
   private participants: Map<string, MinUser>
-  private quiz_manager: QuizManager
   private status: SessionStatus
+  private quiz_manager: QuizManager
+  private ranking: Ranking
 
   private sockets: {
     instructor: CustomSocket | null
     participants: Map<string, CustomSocket>
   }
 
-  constructor(private instructor: MinUser, quiz: Quiz) {
+  constructor(
+    private instructor: MinUser,
+    quiz: Quiz,
+  ) {
     this.code = generateRandomString(6)
     this.instructor = instructor
     this.participants = new Map()
     this.status = SessionStatus.WAITING_START
     this.quiz_manager = new QuizManager(quiz)
+    this.ranking = new Ranking()
     this.sockets = {
       instructor: null,
       participants: new Map(),
@@ -79,16 +86,40 @@ export class Session {
     answer: string,
   ): void {
     if (this.status !== SessionStatus.SHOWING_QUESTION) return
-    this.quiz_manager.answerQuestion(user_public_id, question_public_id, answer, this.getParticipantsId().length)
-    this.sockets.instructor?.emit("game:instructor:question-answer", {
+    const result = this.quiz_manager.answerQuestion(
+      user_public_id,
+      question_public_id,
+      answer,
+      this.getParticipantsId().length,
+    )
+    if (!result) return
+    this.sockets.instructor?.emit('game:instructor:question-answer', {
       code: this.code,
       question_public_id: question_public_id,
-      ready_participants: this.quiz_manager.getParticipantsThatAnsweredQuestion(question_public_id),
+      ready_participants:
+        this.quiz_manager.getParticipantsThatAnsweredQuestion(
+          question_public_id,
+        ),
+    })
+    this.ranking.updateScore({
+      id: user_public_id,
+      score:
+        result.feedback.points +
+        result.feedback.streak_bonus +
+        result.feedback.velocity_bonus,
     })
   }
 
   private getParticipantsId(): string[] {
     return Array.from(this.participants.keys())
+  }
+
+  private getRanking(top: number | null = null): RankingType {
+    const ranking = this.ranking.getRanking(top)
+    return ranking.map((r) => ({
+      rank: r.rank,
+      players: r.entries.map((e) => ({ name: e.id, points: e.score })),
+    }))
   }
 
   getInstructorState(): InstructorSessionState {
@@ -132,22 +163,14 @@ export class Session {
       return {
         ...base,
         status: SessionStatus.FEEDBACK_SESSION,
-        ranking: [
-          { name: 'Nome 1', points: 123456 },
-          { name: 'Nome 2', points: 12345 },
-          { name: 'Nome 3', points: 1234 },
-        ],
+        ranking: this.getRanking(3),
       }
     }
 
     return {
       ...base,
       status: SessionStatus.ENDING,
-      ranking: [
-        { name: 'Nome 1', points: 123456 },
-        { name: 'Nome 2', points: 12345 },
-        { name: 'Nome 3', points: 1234 },
-      ],
+      ranking: this.getRanking(),
     }
   }
 
@@ -193,22 +216,14 @@ export class Session {
       return {
         ...base,
         status: SessionStatus.FEEDBACK_SESSION,
-        ranking: [
-          { name: 'Nome 1', points: 123456 },
-          { name: 'Nome 2', points: 12345 },
-          { name: 'Nome 3', points: 1234 },
-        ],
+        ranking: this.getRanking(3),
       }
     }
 
     return {
       ...base,
       status: SessionStatus.ENDING,
-      ranking: [
-        { name: 'Nome 1', points: 123456 },
-        { name: 'Nome 2', points: 12345 },
-        { name: 'Nome 3', points: 1234 },
-      ],
+      ranking: this.getRanking(),
     }
   }
 
