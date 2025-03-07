@@ -218,9 +218,12 @@ export class QuizManager {
     question_public_id: string,
     n_participants: number,
   ): number {
-    return (
-      n_participants -
-      this.getParticipantsThatAnsweredQuestion(question_public_id).length
+    const max_participants = 20 // Somente os primeiros 20 a responder ganham bônus
+    return Math.max(
+      0,
+      Math.min(n_participants, max_participants) -
+        (this.getParticipantsThatAnsweredQuestion(question_public_id).length +
+          1), // Soma um pois a respnsta do usuário atual ainda não foi considerada
     )
   }
 
@@ -252,7 +255,9 @@ export class QuizManager {
       const question = this.quiz.questions[current_question_index]
       const answers = this.answers.get(question.public_id)
       if (!answers || !answers.length) break
-      const user_answer = answers.find(a => a.user_public_id === user_public_id)
+      const user_answer = answers.find(
+        (a) => a.user_public_id === user_public_id,
+      )
       if (!user_answer) break
       if (!user_answer.feedback.is_correct) break
       streak++
