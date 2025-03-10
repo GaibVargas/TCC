@@ -118,9 +118,15 @@ interface RankingEntry {
   points: number
 }
 
+export type Ranking = {
+  rank: string
+  players: RankingEntry[]
+}[]
+
+
 export interface SessionFeedbackSessionState extends SessionBaseState {
   status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING
-  ranking: RankingEntry[]
+  ranking: Ranking
 }
 
 export type InstructorSessionState =
