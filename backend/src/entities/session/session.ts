@@ -33,10 +33,7 @@ export class Session {
     this.status = SessionStatus.WAITING_START
     this.quiz_manager = new QuizManager(quiz)
     this.ranking = new Ranking()
-    this.sockets = {
-      instructor: null,
-      participants: new Map(),
-    }
+    this.sockets = { instructor: null, participants: new Map() }
   }
 
   isValidInstructor(public_id: string): boolean {
@@ -118,7 +115,10 @@ export class Session {
     const ranking = this.ranking.getRanking(top)
     return ranking.map((r) => ({
       rank: r.rank,
-      players: r.entries.map((e) => ({ name: e.id, points: e.score })),
+      players: r.entries.map((e) => ({
+        name: this.participants.get(e.id)?.name ?? 'Desconhecido',
+        points: e.score,
+      })),
     }))
   }
 
@@ -130,10 +130,7 @@ export class Session {
     }
 
     if (this.status === SessionStatus.WAITING_START)
-      return {
-        ...base,
-        status: SessionStatus.WAITING_START,
-      }
+      return { ...base, status: SessionStatus.WAITING_START }
 
     const question = this.quiz_manager.getCurrentQuestion()
     if (this.status === SessionStatus.SHOWING_QUESTION) {
@@ -167,11 +164,7 @@ export class Session {
       }
     }
 
-    return {
-      ...base,
-      status: SessionStatus.ENDING,
-      ranking: this.getRanking(),
-    }
+    return { ...base, status: SessionStatus.ENDING, ranking: this.getRanking() }
   }
 
   getParticipantState(user_public_id: string): ParticipantSessionState {
@@ -182,10 +175,7 @@ export class Session {
     }
 
     if (this.status === SessionStatus.WAITING_START)
-      return {
-        ...base,
-        status: SessionStatus.WAITING_START,
-      }
+      return { ...base, status: SessionStatus.WAITING_START }
 
     const question = this.quiz_manager.getCurrentQuestion()
     if (this.status === SessionStatus.SHOWING_QUESTION) {
@@ -220,11 +210,7 @@ export class Session {
       }
     }
 
-    return {
-      ...base,
-      status: SessionStatus.ENDING,
-      ranking: this.getRanking(),
-    }
+    return { ...base, status: SessionStatus.ENDING, ranking: this.getRanking() }
   }
 
   private sendStateUpdates(): void {
