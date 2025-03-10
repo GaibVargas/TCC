@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv'
 import util from 'node:util'
+import ms from 'ms'
 import { z } from 'zod'
 
 dotenv.config()
@@ -33,20 +34,25 @@ const dbSchema = z.object({
   DATABASE_URL: z.string(),
 })
 
+const msStringSchema = z.union([
+  z.number(),
+  z
+    .string()
+    .refine((val) => ms(val as ms.StringValue) !== undefined, {
+      message: 'Invalid time duration string',
+    }),
+])
+
 const authSchema = z.object({
   ACCESS_TOKEN_SECRET: z.string(),
-  ACCESS_TOKEN_EXPIRATION: z.string(),
+  ACCESS_TOKEN_EXPIRATION: msStringSchema,
   REFRESH_TOKEN_SECRET: z.string(),
-  REFRESH_TOKEN_EXPIRATION: z.string(),
+  REFRESH_TOKEN_EXPIRATION: msStringSchema,
   AUTH_TOKEN_SECRET: z.string(),
-  AUTH_TOKEN_EXPIRATION: z.string(),
+  AUTH_TOKEN_EXPIRATION: msStringSchema,
 })
 
-const envSchema = z.object({
-  host: hostSchema,
-  db: dbSchema,
-  auth: authSchema,
-})
+const envSchema = z.object({ host: hostSchema, db: dbSchema, auth: authSchema })
 
 const parsedEnv = envSchema.safeParse({
   host: {

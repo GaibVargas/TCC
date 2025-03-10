@@ -247,7 +247,7 @@ export class QuizManager {
     )
 
     // Se for a primeira questão não há sequência de acertos
-    if (question_index <= 1) return 0
+    if (question_index < 1) return 0
 
     const longest_streak = 2
     let streak = 0

@@ -1,12 +1,6 @@
-export type RankingItem = {
-  id: string
-  score: number
-}
+export type RankingItem = { id: string; score: number }
 
-export type RankingResultItem = {
-  rank: string,
-  entries: RankingItem[]
-}
+export type RankingResultItem = { rank: string; entries: RankingItem[] }
 
 export class Ranking {
   private players: Map<string, number>
@@ -41,9 +35,9 @@ export class Ranking {
       '1': [{ ...this.sorted_players[0] }],
     }
     for (let i = 1; i < this.sorted_players.length; i++) {
-      if (this.sorted_players[i].score !== this.sorted_players[i - 1].score) {
-        rank = i + 1
-      }
+      if (this.sorted_players[i].score !== this.sorted_players[i - 1].score)
+        rank++
+
       if (top && rank > top) break
       if (!(rank in ranking)) ranking[String(rank)] = []
       ranking[String(rank)].push({ ...this.sorted_players[i] })

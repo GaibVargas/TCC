@@ -1,4 +1,5 @@
 import { JwtPayload, sign, SignOptions, verify } from 'jsonwebtoken'
+import ms from 'ms'
 import { MinUser } from '../entities/user/type'
 import { config } from '../config/env'
 
@@ -10,21 +11,23 @@ function generateToken(
   return sign(payload, secret, options)
 }
 
+type TokenExpiration = number | ms.StringValue
+
 export function generateUserAccessToken(user: MinUser): string {
   return generateToken(user, config.auth.ACCESS_TOKEN_SECRET, {
-    expiresIn: config.auth.ACCESS_TOKEN_EXPIRATION,
+    expiresIn: (config.auth.ACCESS_TOKEN_EXPIRATION as TokenExpiration),
   })
 }
 
 export function generateUserRefreshToken(user: MinUser): string {
   return generateToken(user, config.auth.REFRESH_TOKEN_SECRET, {
-    expiresIn: config.auth.REFRESH_TOKEN_EXPIRATION,
+    expiresIn: (config.auth.REFRESH_TOKEN_EXPIRATION as TokenExpiration),
   })
 }
 
 export function generateUserAuthToken(user: MinUser): string {
   return generateToken(user, config.auth.AUTH_TOKEN_SECRET, {
-    expiresIn: config.auth.AUTH_TOKEN_EXPIRATION,
+    expiresIn: (config.auth.AUTH_TOKEN_EXPIRATION as TokenExpiration),
   })
 }
 
