@@ -11,7 +11,7 @@
 npm install
 ```
 
-By default the backend of the project is available at http://localhost:3000
+By default the backend of the project is available at http://localhost:3333
 
 ### Production
 
