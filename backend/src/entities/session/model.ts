@@ -5,12 +5,14 @@ export async function createSession(
   code: string,
   status: SessionStatus,
   quiz_id: number,
+  current_question_public_id: string,
 ): Promise<number> {
   const session = await prisma.session.create({
     data: {
       code,
       status,
       quiz_id,
+      current_question_public_id,
     },
   })
   return session.id

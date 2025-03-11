@@ -39,9 +39,20 @@ export class Session {
     this.db_id = 0
   }
 
-  static async createSession(instructor: MinUser, quiz: Quiz, quiz_id: number): Promise<Session> {
+  static async createSession(
+    instructor: MinUser,
+    quiz: Quiz,
+    quiz_id: number,
+  ): Promise<Session> {
     const session = new Session(instructor, quiz)
-    const id = await sessionModel.createSession(session.getCode(), SessionStatus.WAITING_START, quiz_id)
+    const current_question_public_id =
+      session.quiz_manager.getCurrentQuestion().public_id
+    const id = await sessionModel.createSession(
+      session.getCode(),
+      SessionStatus.WAITING_START,
+      quiz_id,
+      current_question_public_id,
+    )
     session.setDbId(id)
     return session
   }
