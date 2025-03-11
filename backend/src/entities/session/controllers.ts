@@ -17,14 +17,18 @@ export async function createSession(
 ): Promise<SessionCreatePayload> {
   userVerify(req.user)
   const session = create_session_payload_schema.parse(req.body)
-  const quiz = await quizServices.getQuiz(session.quiz_public_id)
+  const [quiz, quiz_id] = await Promise.all([
+    quizServices.getQuiz(session.quiz_public_id),
+    quizServices.getQuizIdByPublicId(session.quiz_public_id)
+  ])
   const sessions_manager = SessionsManager.getInstance()
+  const code = await sessions_manager.newSession(req.user, quiz, quiz_id)
   return {
     quiz: {
       public_id: quiz.public_id,
       title: quiz.title,
     },
-    code: sessions_manager.newSession(req.user, quiz),
+    code,
   }
 }
 

@@ -11,7 +11,11 @@ import {
   QuizResume,
   UpdateQuizPayload,
 } from './type'
-import { getPrismaPagination, Paginated, PaginationQuery } from '../../common/pagination'
+import {
+  getPrismaPagination,
+  Paginated,
+  PaginationQuery,
+} from '../../common/pagination'
 
 export async function createQuiz(
   user: MinUser,
@@ -39,16 +43,18 @@ export async function createQuiz(
     },
     include: {
       questions: {
-        include: { options: true }
-      }
-    }
+        include: { options: true },
+      },
+    },
   })
   const parsed_quiz = quiz_schema.safeParse(quiz_db)
   if (parsed_quiz.error) return null
   return parsed_quiz.data
 }
 
-export async function findQuizByPublicId(public_id: string): Promise<Quiz | null> {
+export async function findQuizByPublicId(
+  public_id: string,
+): Promise<Quiz | null> {
   const quiz_db = await prisma.quiz.findUnique({
     where: { public_id, is_deleted: false },
     include: {
@@ -288,7 +294,7 @@ export async function findQuizResumesByAuthorId(
     }),
     prisma.quiz.count({
       where: { author_id, is_deleted: false },
-    })
+    }),
   ])
   const formatted_quizzes = z
     .array(quiz_schema)
@@ -300,6 +306,14 @@ export async function findQuizResumesByAuthorId(
   }
 }
 
+export async function getQuizIdByPublicId(public_id: string): Promise<number> {
+  const quiz = await prisma.quiz.findUniqueOrThrow({
+    where: { public_id },
+    select: { id: true },
+  })
+  return quiz.id
+}
+
 const quizModel = {
   createQuiz,
   findQuizByPublicId,
@@ -307,6 +321,7 @@ const quizModel = {
   getQuizAuthorPublicId,
   deleteQuizByPublicId,
   findQuizResumesByAuthorId,
+  getQuizIdByPublicId,
 }
 
 export default quizModel

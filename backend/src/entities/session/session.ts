@@ -10,9 +10,11 @@ import { MinUser } from '../user/type'
 import { QuizManager } from '../quiz/quiz-manager'
 import { CustomSocket } from '../../socket/types'
 import { Ranking } from './ranking'
+import sessionModel from './model'
 
 export class Session {
-  code: string
+  private db_id: number
+  private code: string
   private participants: Map<string, MinUser>
   private status: SessionStatus
   private quiz_manager: QuizManager
@@ -34,6 +36,27 @@ export class Session {
     this.quiz_manager = new QuizManager(quiz)
     this.ranking = new Ranking()
     this.sockets = { instructor: null, participants: new Map() }
+    this.db_id = 0
+  }
+
+  static async createSession(instructor: MinUser, quiz: Quiz, quiz_id: number): Promise<Session> {
+    const session = new Session(instructor, quiz)
+    const id = await sessionModel.createSession(session.getCode(), SessionStatus.WAITING_START, quiz_id)
+    session.setDbId(id)
+    return session
+  }
+
+  getCode(): string {
+    return this.code
+  }
+
+  setDbId(id: number): void {
+    this.db_id = id
+  }
+
+  // TODO: Remove after tests
+  setDefaultCode(): void {
+    this.code = 'abc123'
   }
 
   isValidInstructor(public_id: string): boolean {

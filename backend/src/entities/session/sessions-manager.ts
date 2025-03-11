@@ -81,8 +81,8 @@ export class SessionsManager {
       },
       baseQuiz,
     )
-    session.code = 'abc123'
-    this.active_sessions.set(session.code, session)
+    session.setDefaultCode()
+    this.active_sessions.set(session.getCode(), session)
   }
 
   static getInstance(): SessionsManager {
@@ -92,10 +92,11 @@ export class SessionsManager {
     return SessionsManager.instance
   }
 
-  newSession(instructor: MinUser, quiz: Quiz): string {
-    const session = new Session(instructor, quiz)
-    this.active_sessions.set(session.code, session)
-    return session.code
+  async newSession(instructor: MinUser, quiz: Quiz, quiz_id: number): Promise<string> {
+    const session = await Session.createSession(instructor, quiz, quiz_id)
+    const code = session.getCode()
+    this.active_sessions.set(code, session)
+    return code
   }
 
   removeSession(code: string): void {

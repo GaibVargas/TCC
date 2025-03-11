@@ -54,6 +54,10 @@ export async function getQuizzesByAuthor(user_public_id: string, query: Paginati
   return await quizModel.findQuizResumesByAuthorId(user_id, query)
 }
 
+export async function getQuizIdByPublicId(public_id: string): Promise<number> {
+  return await quizModel.getQuizIdByPublicId(public_id)
+}
+
 const quizServices = {
   createQuiz,
   getQuiz,
@@ -61,6 +65,7 @@ const quizServices = {
   userIsAuthorOfQuizOrThrow,
   deleteQuiz,
   getQuizzesByAuthor,
+  getQuizIdByPublicId,
 }
 
 export default quizServices
