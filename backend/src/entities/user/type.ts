@@ -36,11 +36,22 @@ export const createUserPayloadSchema = userSchema.omit({
 export type CreateUserPayload = z.infer<typeof createUserPayloadSchema>
 
 export const minUserSchema = userSchema.pick({
+  id: true,
   public_id: true,
   name: true,
   role: true,
 })
 export type MinUser = z.infer<typeof minUserSchema>
+
+export type UserLMSData = {
+  lms_iss: string
+  lms_platform: string
+  lms_user_id: string
+  lms_version: string
+  lms_client_id: string
+  lms_outcome_source_id: string
+  lms_outcome_service_url: string
+}
 
 export const stubUser: User = {
   id: 1,

@@ -62,7 +62,7 @@ interface ParticipantSessionWaitingState extends SessionBaseState {
 
 type SessionQuestionOptions = Pick<QuestionOption, 'public_id' | 'description'>
 export interface SessionQuestion
-  extends Pick<Question, 'public_id' | 'description' | 'type' | 'time_limit'> {
+  extends Pick<Question, 'id' | 'public_id' | 'description' | 'type' | 'time_limit'> {
   options: SessionQuestionOptions[]
   index: number
   total: number

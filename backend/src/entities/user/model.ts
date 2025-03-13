@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { CreateUserPayload, MinUser } from './type'
+import { CreateUserPayload, MinUser, UserLMSData } from './type'
 import prisma from '../../config/db'
 import { getValidatedUserRole } from './services'
 
@@ -11,6 +11,7 @@ export async function findMinUserByPublicId(
       public_id: public_id,
     },
     select: {
+      id: true,
       public_id: true,
       name: true,
       role: true,
@@ -18,6 +19,7 @@ export async function findMinUserByPublicId(
   })
   if (!dbUser) return null
   return {
+    id: dbUser.id,
     public_id: dbUser.public_id,
     name: dbUser.name,
     role: getValidatedUserRole(dbUser.role),
@@ -60,6 +62,7 @@ export async function createUser(user: CreateUserPayload): Promise<MinUser> {
     },
   })
   return {
+    id: dbUser.id,
     public_id: dbUser.public_id,
     name: dbUser.name,
     role: getValidatedUserRole(dbUser.role),
@@ -88,6 +91,7 @@ export async function updateUserByLMSId(
     },
   })
   return {
+    id: dbUser.id,
     public_id: dbUser.public_id,
     name: dbUser.name,
     role: getValidatedUserRole(dbUser.role),
@@ -104,6 +108,21 @@ export async function updateUserRefreshTokenByPublicId(
   })
 }
 
+export async function getUserLMSDataById(id: number): Promise<UserLMSData> {
+  return await prisma.user.findFirstOrThrow({
+    where: { id },
+    select: {
+      lms_iss: true,
+      lms_platform: true,
+      lms_user_id: true,
+      lms_version: true,
+      lms_client_id: true,
+      lms_outcome_source_id: true,
+      lms_outcome_service_url: true,
+    },
+  })
+}
+
 const userModel = {
   findMinUserByPublicId,
   findUserByLMSId,
@@ -111,6 +130,7 @@ const userModel = {
   createUser,
   updateUserByLMSId,
   updateUserRefreshTokenByPublicId,
+  getUserLMSDataById,
 }
 
 export default userModel

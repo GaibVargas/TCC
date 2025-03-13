@@ -32,10 +32,10 @@ export async function createSession(
   }
 }
 
-export function startSession(
+export async function startSession(
   req: FastifyRequest<{ Params: { code: string } }>,
   reply: FastifyReply,
-): void {
+): Promise<void> {
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
@@ -45,14 +45,14 @@ export function startSession(
       message: 'Unauthorized',
     })
   }
-  sessions_manager.startSession(req.params.code)
+  await sessions_manager.startSession(req.params.code)
   reply.status(204).send()
 }
 
-export function sessionNextStep(
+export async function sessionNextStep(
   req: FastifyRequest<{ Params: { code: string } }>,
   reply: FastifyReply,
-): void {
+): Promise<void> {
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
@@ -62,7 +62,7 @@ export function sessionNextStep(
       message: 'Unauthorized',
     })
   }
-  sessions_manager.sessionNextStep(req.params.code)
+  await sessions_manager.sessionNextStep(req.params.code)
   reply.status(204).send()
 }
 
@@ -83,14 +83,14 @@ export function getSessionState(
   })
 }
 
-export function participantJoinSession(
+export async function participantJoinSession(
   req: FastifyRequest<{ Params: { code: string } }>,
   reply: FastifyReply,
-): void {
+): Promise<void> {
   userVerify(req.user)
   const sessions_manager = SessionsManager.getInstance()
   const session = sessions_manager.getSession(req.params.code)
-  session.addParticipant(req.user)
+  await session.addParticipant(req.user)
   reply.status(204).send()
 }
 

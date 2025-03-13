@@ -8,6 +8,7 @@ const baseQuiz: Quiz = {
   title: 'Quiz teste',
   questions: [
     {
+      id: 1,
       public_id: 'quiz-question-1',
       description: 'Questão 1 multi choice',
       correct_text_answer: '',
@@ -37,6 +38,7 @@ const baseQuiz: Quiz = {
       ],
     },
     {
+      id: 2,
       public_id: 'quiz-question-2',
       description: 'Questão 2 true false',
       correct_text_answer: '',
@@ -56,6 +58,7 @@ const baseQuiz: Quiz = {
       ],
     },
     {
+      id: 3,
       public_id: 'quiz-question-3',
       description: 'Questão 3 text',
       correct_text_answer: 'correto',
@@ -75,6 +78,7 @@ export class SessionsManager {
     this.active_sessions = new Map()
     const session = new Session(
       {
+        id: 1,
         public_id: '7be59af8-e47e-476f-b819-218a083f8434',
         name: 'Instrutor teste',
         role: UserRoles.INSTRUCTOR,
@@ -119,9 +123,9 @@ export class SessionsManager {
     session.disconnectInstructor()
   }
 
-  participantEnterSession(code: string, user: MinUser, socket: CustomSocket): void {
+  async participantEnterSession(code: string, user: MinUser, socket: CustomSocket): Promise<void> {
     const session = this.getSession(code)
-    session.addParticipant(user)
+    await session.addParticipant(user)
     session.connectParticipant(user.public_id, socket)
   }
 
@@ -131,13 +135,13 @@ export class SessionsManager {
     session.disconnectParticipant(user.public_id)
   }
 
-  startSession(code: string): void {
+  async startSession(code: string): Promise<void> {
     const session = this.getSession(code)
-    session.start()
+    await session.start()
   }
 
-  sessionNextStep(code: string): void {
+  async sessionNextStep(code: string): Promise<void> {
     const session = this.getSession(code)
-    session.nextStep()
+    await session.nextStep()
   }
 }

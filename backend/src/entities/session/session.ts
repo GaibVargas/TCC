@@ -10,7 +10,11 @@ import { MinUser } from '../user/type'
 import { QuizManager } from '../quiz/quiz-manager'
 import { CustomSocket } from '../../socket/types'
 import { Ranking } from './ranking'
-import sessionModel from './model'
+import sessionModel, {
+  SessionQuestionAnswerData,
+  SessionUpdateData,
+} from './model'
+import userServices from '../user/services'
 
 export class Session {
   private db_id: number
@@ -78,29 +82,43 @@ export class Session {
     return this.participants.has(public_id)
   }
 
-  start(): void {
+  async start(): Promise<void> {
     this.status = SessionStatus.SHOWING_QUESTION
+    await this.saveSessionUpdate({ status: SessionStatus.SHOWING_QUESTION })
     this.sendStateUpdates()
   }
 
-  nextStep(): void {
+  async nextStep(): Promise<void> {
     switch (this.status) {
       case SessionStatus.WAITING_START:
+        await this.saveSessionUpdate({ status: SessionStatus.SHOWING_QUESTION })
         this.status = SessionStatus.SHOWING_QUESTION
         this.quiz_manager.startCurrentQuestion()
         break
       case SessionStatus.SHOWING_QUESTION:
+        await this.saveQuestionAnswers(
+          this.quiz_manager.getCurrentQuestion().public_id,
+        )
+        await this.saveSessionUpdate({
+          status: SessionStatus.FEEDBACK_QUESTION,
+        })
         this.status = SessionStatus.FEEDBACK_QUESTION
         break
       case SessionStatus.FEEDBACK_QUESTION:
+        await this.saveSessionUpdate({ status: SessionStatus.FEEDBACK_SESSION })
         this.status = SessionStatus.FEEDBACK_SESSION
         break
       case SessionStatus.FEEDBACK_SESSION:
         const question = this.quiz_manager.getCurrentQuestion()
         const next_question = this.quiz_manager.getNextQuestion()
         if (question.public_id === next_question.public_id) {
+          await this.saveSessionUpdate({ status: SessionStatus.ENDING })
           this.status = SessionStatus.ENDING
         } else {
+          await this.saveSessionUpdate({
+            status: SessionStatus.SHOWING_QUESTION,
+            current_question_public_id: next_question.public_id,
+          })
           this.status = SessionStatus.SHOWING_QUESTION
           this.quiz_manager.startCurrentQuestion()
         }
@@ -109,6 +127,29 @@ export class Session {
         break
     }
     this.sendStateUpdates()
+  }
+
+  private async saveSessionUpdate(data: SessionUpdateData): Promise<void> {
+    await sessionModel.updateSessionById(this.db_id, data)
+  }
+
+  private async saveQuestionAnswers(question_public_id: string): Promise<void> {
+    const answers = this.quiz_manager.getQuestionAnswers(question_public_id)
+    if (!answers.length) return
+    const formatted_answers: SessionQuestionAnswerData[] = []
+    for (const answer of answers) {
+      const player_id = this.participants.get(answer.user_public_id)?.id
+      const question_id =
+        this.quiz_manager.getQuestionIdByPublicId(question_public_id)
+      if (!player_id || !question_id) continue
+      formatted_answers.push({
+        value: answer.given_answer,
+        session_id: this.db_id,
+        question_id,
+        player_id,
+      })
+    }
+    await sessionModel.saveSessionQuestionAnswersById(formatted_answers)
   }
 
   answerQuestion(
@@ -279,7 +320,13 @@ export class Session {
     this.sockets.participants.delete(user_public_id)
   }
 
-  addParticipant(user: MinUser): void {
+  async addParticipant(user: MinUser): Promise<void> {
+    const lms_user = await userServices.getUserLMSDataById(user.id)
+    await sessionModel.upsertPlayer({
+      user_id: user.id,
+      session_id: this.db_id,
+      ...lms_user,
+    })
     this.participants.set(user.public_id, user)
     this.sockets.instructor?.emit('game:instructor:participant-join', {
       code: this.code,

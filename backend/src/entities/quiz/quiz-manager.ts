@@ -37,9 +37,15 @@ export class QuizManager {
     }
   }
 
+  getQuestionIdByPublicId(question_public_id: string): number | undefined {
+    const question = this.quiz.questions.find(q => q.public_id === question_public_id)
+    return question?.id
+  }
+
   getCurrentQuestion(): SessionQuestion {
     const question = this.quiz.questions[this.current_question]
     return {
+      id: question.id,
       public_id: question.public_id,
       description: question.description,
       type: question.type,
@@ -265,5 +271,11 @@ export class QuizManager {
       current_question_index--
     }
     return streak
+  }
+
+  getQuestionAnswers(question_public_id: string): Answer[] {
+    const answers = this.answers.get(question_public_id)
+    if (!answers) return []
+    return answers
   }
 }

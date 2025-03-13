@@ -13,6 +13,7 @@ import {
   minUserSchema,
   Roles,
   rolesSchema,
+  UserLMSData,
   UserRoles,
 } from './type'
 
@@ -103,7 +104,7 @@ export async function loginUser(auth_token: string): Promise<LoggedUserTokens> {
   if (!token.valid) {
     throw new HttpRequestError({
       status_code: 401,
-      message: 'Unauthorized'
+      message: 'Unauthorized',
     })
   }
   const user = minUserSchema.parse(token.decoded)
@@ -119,12 +120,17 @@ export async function loginUser(auth_token: string): Promise<LoggedUserTokens> {
   }
 }
 
+export async function getUserLMSDataById(id: number): Promise<UserLMSData> {
+  return userModel.getUserLMSDataById(id)
+}
+
 const userServices = {
   getValidatedUserRole,
   getUserRole,
   updateOrCreateUser,
   getUserAuthToken,
   loginUser,
+  getUserLMSDataById,
 }
 
 export default userServices
