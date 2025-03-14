@@ -20,6 +20,9 @@ const socket = useSocket()
 socket.emit('participant:connect', { code: session_store.code })
 
 const { data, error } = await useApiUseFetch<ParticipantSessionState>(`/session/sync/${session_store.code}`)
+if (error) {
+  navigateTo('/session/entry')
+}
 if (data.value) {
   session.value = data.value
 }

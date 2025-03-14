@@ -49,7 +49,7 @@ const loading_open_session = ref(false)
 
 async function openSession(mode: SessionModes | null) {
   const toast = useNuxtApp().$toast
-  if (!quiz_to_be_open.value || !mode) {
+  if (!quiz_to_be_open.value) {
     hideOpenSession()
     return
   }

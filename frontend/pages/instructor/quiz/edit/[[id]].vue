@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { AsyncDataRequestStatus } from '#app'
 import type { InstructorQuizQuestionList } from '#components'
-import { QuestionType, type QuestionOption, type Quiz, type QuizPayload } from '~/types/quiz'
+import { QuestionType, type QuestionOption, type Quiz, type QuizPayload, type QuizUpdatePayload } from '~/types/quiz'
 
 definePageMeta({
   middleware: 'is-instructor',
@@ -82,7 +82,7 @@ function removeQuestion(questionId: string) {
   if (currentQuestionIndexOnEdit.value >= quiz.questions.length) currentQuestionIndexOnEdit.value = quiz.questions.length - 1
 }
 
-function formatQuizToSave(quiz: Quiz): Quiz {
+function formatQuizToSave(quiz: Quiz): QuizUpdatePayload {
   return {
     ...quiz,
     questions: quiz.questions.map(q => {
@@ -91,8 +91,9 @@ function formatQuizToSave(quiz: Quiz): Quiz {
         options = q.multi_choice_options
       else if (q.type === QuestionType.TRUE_OR_FALSE)
         options = q.true_or_false_options
+      const { id, ...question } = q
       return {
-        ...q,
+        ...question,
         options,
         correct_text_answer: q.type === QuestionType.TEXT ? q.correct_text_answer : '',
       }

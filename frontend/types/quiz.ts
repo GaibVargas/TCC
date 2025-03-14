@@ -39,6 +39,7 @@ export interface QuizGeneric<QuestionT> {
   questions: QuestionT[]
 }
 export interface Quiz extends QuizGeneric<Question> {}
+export interface QuizUpdatePayload extends QuizGeneric<Omit<Question, "id">> {}
 export interface QuizPayload extends PublicId, QuizGeneric<QuestionPayload> {}
 
 export interface QuizResume {

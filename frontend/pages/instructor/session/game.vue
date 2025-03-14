@@ -22,6 +22,9 @@ const socket = useSocket()
 socket.emit('instructor:connect', { code: session_store.code })
 
 const { data, error } = await useApiUseFetch<InstructorSessionState>(`/session/sync/${session_store.code}`)
+if (error) {
+  navigateTo('/instructor/quiz')
+}
 if (data.value) {
   session.value = data.value
 }
