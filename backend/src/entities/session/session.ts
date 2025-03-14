@@ -66,8 +66,16 @@ export class Session {
     return session
   }
 
+  static async recoverOngoingSessions(): Promise<void> {
+    await sessionModel.getOngoingSessions()
+  }
+
   getCode(): string {
     return this.code
+  }
+
+  setCode(code: string): void {
+    this.code = code
   }
 
   setDbId(id: number): void {

@@ -1,6 +1,7 @@
 import { Session } from '@prisma/client'
+import { z } from 'zod'
 import prisma from '../../config/db'
-import { SessionStatus } from './type'
+import { RecoveredSession, recoveredSessionSchema, SessionStatus } from './type'
 
 export async function createSession(
   code: string,
@@ -107,11 +108,78 @@ export async function upsertPlayer(player: Player): Promise<number> {
   return response.id
 }
 
+export async function getOngoingSessions(): Promise<RecoveredSession[]> {
+  const sessions = await prisma.session.findMany({
+    where: {
+      NOT: {
+        status: SessionStatus.ENDING,
+      },
+    },
+    include: {
+      quiz: {
+        include: {
+          questions: {
+            where: { is_deleted: false },
+            orderBy: { id: 'asc' },
+            include: {
+              options: {
+                where: { is_deleted: false },
+                orderBy: { id: 'asc' },
+              },
+            },
+          },
+          author: {
+            select: {
+              id: true,
+              public_id: true,
+              name: true,
+              role: true,
+            },
+          },
+        },
+      },
+      players: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              id: true,
+              public_id: true,
+              name: true,
+              role: true,
+            },
+          },
+        },
+      },
+      answers: {
+        orderBy: { id: 'asc' },
+        select: {
+          value: true,
+          player: {
+            select: {
+              user: {
+                select: {
+                  public_id: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  const formatted_sessions = z
+    .array(recoveredSessionSchema)
+    .parse(sessions.map((s) => ({ ...s, instructor: s.quiz.author })))
+  return formatted_sessions
+}
+
 const sessionModel = {
   createSession,
   updateSessionById,
   saveSessionQuestionAnswersById,
   upsertPlayer,
+  getOngoingSessions,
 }
 
 export default sessionModel

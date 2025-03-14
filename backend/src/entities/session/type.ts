@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { Question, QuestionOption, Quiz } from '../quiz/type'
+import { Question, QuestionOption, Quiz, quiz_schema } from '../quiz/type'
+import { minUserSchema } from '../user/type'
 
 export enum SessionModes {
   INDIVIDUAL = 'individual',
@@ -135,3 +136,24 @@ export type ParticipantSessionState =
   | ParticipantSessionFeedbackQuestionState
   | SessionFeedbackSessionState
 
+export const recoveredSessionSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  status: z.nativeEnum(SessionStatus),
+  current_question_public_id: z.string(),
+  quiz: quiz_schema,
+  instructor: minUserSchema,
+  players: z.array(z.object({
+    id: z.number(),
+    user: minUserSchema,
+  })),
+  answers: z.array(z.object({
+    value: z.string(),
+    player: z.object({
+      user: z.object({
+        public_id: z.string()
+      })
+    })
+  }))
+})
+export type RecoveredSession = z.infer<typeof recoveredSessionSchema>

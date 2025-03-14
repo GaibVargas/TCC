@@ -96,6 +96,10 @@ export class SessionsManager {
     return SessionsManager.instance
   }
 
+  async recoverSessions(): Promise<void> {
+    await Session.recoverOngoingSessions()
+  }
+
   async newSession(instructor: MinUser, quiz: Quiz, quiz_id: number): Promise<string> {
     const session = await Session.createSession(instructor, quiz, quiz_id)
     const code = session.getCode()

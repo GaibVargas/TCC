@@ -84,10 +84,6 @@ server.setErrorHandler((error, _request, reply) => {
   })
 })
 
-// [TODO]: Remover linha. Ela existe só para haver um quiz padrão
-// Futuramente transformar em mecanismo de recuperação de falha para continuar quizzes interrompdos
-SessionsManager.getInstance()
-
 server.get('/healthcheck', async (_request, _reply) => {
   return { message: 'Hello World!' }
 })
@@ -105,6 +101,8 @@ server.ready((err) => {
 const start = async (): Promise<void> => {
   try {
     await prisma.$connect()
+    const session_manager = SessionsManager.getInstance()
+    await session_manager.recoverSessions()
     await server.listen({ port: config.host.PORT })
   } catch (err) {
     server.log.error(err)
