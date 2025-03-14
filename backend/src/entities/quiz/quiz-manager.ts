@@ -17,6 +17,7 @@ export type Answer = {
   user_public_id: string
   given_answer: string
   feedback: AnswerFeedback
+  recovered?: boolean
 }
 
 export class QuizManager {
@@ -28,6 +29,11 @@ export class QuizManager {
     this.current_question = 0
     this.answers = new Map()
     this.questions_start_time = new Map()
+  }
+
+  // Deve ser usado somente em casos de recuperação de sessão
+  goToPreviousQuestion(): void {
+    this.current_question = Math.max(0, this.current_question - 1)
   }
 
   getQuiz(): SessionQuiz {
@@ -88,6 +94,7 @@ export class QuizManager {
     question_public_id: string,
     given_answer: string,
     n_participants: number,
+    is_recovered = false,
   ): Answer | undefined {
     const question = this.getCurrentQuestion()
     if (question.public_id !== question_public_id) return
@@ -100,6 +107,7 @@ export class QuizManager {
         given_answer,
         n_participants,
       ),
+      recovered: is_recovered,
     }
     const question_answers = this.answers.get(question_public_id)
     if (!question_answers) this.answers.set(question_public_id, [answer])

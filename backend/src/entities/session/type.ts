@@ -136,6 +136,19 @@ export type ParticipantSessionState =
   | ParticipantSessionFeedbackQuestionState
   | SessionFeedbackSessionState
 
+export const recoveredSessionAnswerSchema = z.object({
+  value: z.string(),
+  player: z.object({
+    user: z.object({
+      public_id: z.string()
+    })
+  }),
+  question: z.object({
+    public_id: z.string()
+  })
+})
+export type RecoveredSessionAnswer = z.infer<typeof recoveredSessionAnswerSchema>
+
 export const recoveredSessionSchema = z.object({
   id: z.number(),
   code: z.string(),
@@ -147,13 +160,6 @@ export const recoveredSessionSchema = z.object({
     id: z.number(),
     user: minUserSchema,
   })),
-  answers: z.array(z.object({
-    value: z.string(),
-    player: z.object({
-      user: z.object({
-        public_id: z.string()
-      })
-    })
-  }))
+  answers: z.array(recoveredSessionAnswerSchema)
 })
 export type RecoveredSession = z.infer<typeof recoveredSessionSchema>

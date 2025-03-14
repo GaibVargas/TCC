@@ -2,6 +2,7 @@ import {
   InstructorSessionState,
   ParticipantSessionState,
   RankingType,
+  RecoveredSessionAnswer,
   SessionStatus,
 } from './type'
 import { generateRandomString } from '../../utils/string'
@@ -17,7 +18,7 @@ import sessionModel, {
 import userServices from '../user/services'
 
 type Participant = {
-  user: MinUser,
+  user: MinUser
   player_id: number
 }
 
@@ -66,8 +67,72 @@ export class Session {
     return session
   }
 
-  static async recoverOngoingSessions(): Promise<void> {
-    await sessionModel.getOngoingSessions()
+  static async recoverOngoingSessions(): Promise<Session[]> {
+    const sessions = await sessionModel.getOngoingSessions()
+    const recovered_sessions = []
+    for (const session of sessions) {
+      const s = new Session(session.instructor, session.quiz)
+      const players = session.players.map((p) => ({
+        player_id: p.id,
+        user: p.user,
+      }))
+      s.recoverAdditionalData(session.code, session.status, session.id, players)
+      s.recoverQuizState(session.current_question_public_id, session.answers)
+      recovered_sessions.push(s)
+    }
+    return recovered_sessions
+  }
+
+  recoverAdditionalData(
+    code: string,
+    status: SessionStatus,
+    db_id: number,
+    participants: Participant[],
+  ): void {
+    this.code = code
+    this.status = status
+    this.db_id = db_id
+    for (const participant of participants) {
+      this.participants.set(participant.user.public_id, participant)
+    }
+  }
+
+  recoverQuizState(current_question_public_id: string, answers: RecoveredSessionAnswer[]): void {
+    const n_participants = this.getParticipantsId().length
+    let question_index = 0
+    let question = this.quiz_manager.getCurrentQuestion()
+    while(true) {
+      const question_answers = answers.filter(a => a.question.public_id === question.public_id)
+      for (const question_answer of question_answers) {
+        const result = this.quiz_manager.answerQuestion(
+          question_answer.player.user.public_id,
+          question_answer.question.public_id,
+          question_answer.value,
+          n_participants,
+          true
+        )
+        if (!result) continue
+        this.ranking.updateScore({
+          id: question_answer.player.user.public_id,
+          score:
+            result.feedback.points +
+            result.feedback.streak_bonus +
+            result.feedback.velocity_bonus,
+        })
+      }
+      if (question.public_id === current_question_public_id) break
+      question = this.quiz_manager.getNextQuestion()
+      question_index++
+    }
+
+    if (this.status !== SessionStatus.SHOWING_QUESTION || !question.time_limit) return
+    if (question_index === 0) {
+      this.status = SessionStatus.WAITING_START
+      return
+    }
+    // Se a sessão é recuperada no meio de uma questão com limitação de tempo, volta um passo
+    this.status = SessionStatus.FEEDBACK_SESSION
+    this.quiz_manager.goToPreviousQuestion()
   }
 
   getCode(): string {
@@ -151,6 +216,9 @@ export class Session {
     if (!answers.length) return
     const formatted_answers: SessionQuestionAnswerData[] = []
     for (const answer of answers) {
+      // Respostas que foram recuperadas após uma interrupção devem ser ignoradas
+      if (answer.recovered) continue
+
       const player_id = this.participants.get(answer.user_public_id)?.player_id
       const question_id =
         this.quiz_manager.getQuestionIdByPublicId(question_public_id)

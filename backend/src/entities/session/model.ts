@@ -155,6 +155,11 @@ export async function getOngoingSessions(): Promise<RecoveredSession[]> {
         orderBy: { id: 'asc' },
         select: {
           value: true,
+          question: {
+            select: {
+              public_id: true,
+            }
+          },
           player: {
             select: {
               user: {
