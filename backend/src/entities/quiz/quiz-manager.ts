@@ -65,7 +65,7 @@ export class QuizManager {
     if (this.questions_start_time.has(question.public_id)) {
       return question
     }
-    const start_time = Date.now()
+    const start_time = Date.now() // UTC
     this.questions_start_time.set(question.public_id, start_time)
     return {
       ...question,
