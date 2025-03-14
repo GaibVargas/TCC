@@ -82,6 +82,8 @@ async function sessionNextStep() {
   } catch (error) {
     console.error(error)
     useNuxtApp().$toast.error('Erro ao continuar sessão. Tente novamente mais tarde')
+  } finally {
+    loadingNextStep.value = false
   }
 }
 
