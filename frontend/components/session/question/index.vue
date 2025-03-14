@@ -44,7 +44,7 @@ async function sendAnswer() {
 </script>
 
 <template>
-  <v-dialog :model-value="sended" :close-on-back="false" persistent>
+  <v-dialog :model-value="was_answer_sended" :close-on-back="false" persistent>
     <v-card class="pa-8">
       <p class="text-body-1 text-center mb-2">Resposta enviada.</p>
       <p class="text-body-2 text-center">Espere o feedback.</p>
@@ -59,7 +59,7 @@ async function sendAnswer() {
       class="w-100 d-flex ga-2 flex-wrap">
       <SessionQuestionOption v-for="(option, index) in props.question.options" class="option" :key="option.public_id"
         :prepend="`${alphabet[index]}.`" :description="option.description" :selected="answer === option.public_id"
-        :disabled="answer.length > 0" @click="setAnswer(option.public_id)" />
+        :disabled="was_answer_sended" @click="setAnswer(option.public_id)" />
     </div>
     <div v-else class="w-100">
       <v-text-field class="w-100" v-model="answer" variant="outlined" placeholder="resposta" autofocus
