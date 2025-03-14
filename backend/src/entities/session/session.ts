@@ -16,10 +16,15 @@ import sessionModel, {
 } from './model'
 import userServices from '../user/services'
 
+type Participant = {
+  user: MinUser,
+  player_id: number
+}
+
 export class Session {
   private db_id: number
   private code: string
-  private participants: Map<string, MinUser>
+  private participants: Map<string, Participant>
   private status: SessionStatus
   private quiz_manager: QuizManager
   private ranking: Ranking
@@ -138,7 +143,7 @@ export class Session {
     if (!answers.length) return
     const formatted_answers: SessionQuestionAnswerData[] = []
     for (const answer of answers) {
-      const player_id = this.participants.get(answer.user_public_id)?.id
+      const player_id = this.participants.get(answer.user_public_id)?.player_id
       const question_id =
         this.quiz_manager.getQuestionIdByPublicId(question_public_id)
       if (!player_id || !question_id) continue
@@ -191,7 +196,7 @@ export class Session {
     return ranking.map((r) => ({
       rank: r.rank,
       players: r.entries.map((e) => ({
-        name: this.participants.get(e.id)?.name ?? 'Desconhecido',
+        name: this.participants.get(e.id)?.user?.name ?? 'Desconhecido',
         points: e.score,
       })),
     }))
@@ -322,12 +327,12 @@ export class Session {
 
   async addParticipant(user: MinUser): Promise<void> {
     const lms_user = await userServices.getUserLMSDataById(user.id)
-    await sessionModel.upsertPlayer({
+    const player_id = await sessionModel.upsertPlayer({
       user_id: user.id,
       session_id: this.db_id,
       ...lms_user,
     })
-    this.participants.set(user.public_id, user)
+    this.participants.set(user.public_id, { user, player_id })
     this.sockets.instructor?.emit('game:instructor:participant-join', {
       code: this.code,
       participants: this.getParticipantsId(),

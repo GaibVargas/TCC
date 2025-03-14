@@ -83,8 +83,8 @@ export type Player = {
   user_id: number
   session_id: number
 }
-export async function upsertPlayer(player: Player): Promise<void> {
-  await prisma.player.upsert({
+export async function upsertPlayer(player: Player): Promise<number> {
+  const response = await prisma.player.upsert({
     where: {
       user_id_session_id: {
         user_id: player.user_id,
@@ -104,6 +104,7 @@ export async function upsertPlayer(player: Player): Promise<void> {
       lms_outcome_service_url: player.lms_outcome_service_url,
     },
   })
+  return response.id
 }
 
 const sessionModel = {
