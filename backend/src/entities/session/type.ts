@@ -9,7 +9,7 @@ export enum SessionModes {
 
 export const create_session_payload_schema = z.object({
   quiz_public_id: z.string(),
-  mode: z.nativeEnum(SessionModes),
+  mode: z.nativeEnum(SessionModes).nullable(),
 })
 
 export const answer_session_question_schema = z.object({

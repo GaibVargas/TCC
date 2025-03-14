@@ -26,7 +26,7 @@ export const create_question_schema = z.object({
   options: z.array(create_question_option_schema),
 })
 export const question_schema = create_question_schema.extend({
-  id: z.number(),
+  id: z.number().optional(),
   public_id: z.string().uuid(),
   options: z.array(question_option_schema),
 })
