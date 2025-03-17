@@ -40,7 +40,10 @@ export class SessionsManager {
     const session = this.getSession(code)
     await session.endSession()
     // Remove a sessão depois de 30 segundos dando esse tempo para que os clientes conectados sejam notificados devidamente
-    setTimeout(() => this.active_sessions.delete(code), 30 * 1000)
+    setTimeout(() => {
+      console.log('REMOVING SESSION')
+      this.active_sessions.delete(code)
+    }, 30 * 1000)
   }
 
   getSession(code: string): Session {

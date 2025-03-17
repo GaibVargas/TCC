@@ -178,3 +178,9 @@ export const sessionItemSchema = z.object({
   updatedAt: z.date(),
 })
 export type SessionItem = z.infer<typeof sessionItemSchema>
+
+export type PlayerGradeAndScoreItem = {
+  id: number
+  grade: number
+  score: number
+}

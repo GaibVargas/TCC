@@ -2,6 +2,7 @@ import { Session } from '@prisma/client'
 import { z } from 'zod'
 import prisma from '../../config/db'
 import {
+  PlayerGradeAndScoreItem,
   RecoveredSession,
   recoveredSessionSchema,
   SessionItem,
@@ -242,6 +243,23 @@ export async function findFinishedSessionsByAuthorId(
   }
 }
 
+export async function savePlayersGradeAndScore(
+  grades_scores: PlayerGradeAndScoreItem[],
+): Promise<void> {
+  const query = `
+    UPDATE "Player"
+    SET 
+      "grade" = CASE "id"
+        ${grades_scores.map(({ id, grade }) => `WHEN ${id} THEN ${grade}`).join(' ')}
+      END,
+      "score" = CASE "id"
+        ${grades_scores.map(({ id, score }) => `WHEN ${id} THEN ${score}`).join(' ')}
+      END
+    WHERE "id" IN (${grades_scores.map(({ id }) => id).join(', ')});
+  `
+  await prisma.$executeRawUnsafe(query)
+}
+
 const sessionModel = {
   createSession,
   updateSessionById,
@@ -250,6 +268,7 @@ const sessionModel = {
   getOngoingSessions,
   findFinishedSessionsByAuthorId,
   findOngoingSessionsByAuthorId,
+  savePlayersGradeAndScore,
 }
 
 export default sessionModel

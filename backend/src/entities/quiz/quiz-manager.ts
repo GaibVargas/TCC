@@ -1,4 +1,4 @@
-import { Question, QuestionType, Quiz } from './type'
+import { GradeItem, Question, QuestionType, Quiz } from './type'
 import {
   InstructorSessionQuestionFeedback,
   ParticipantSessionQuestionFeedback,
@@ -44,7 +44,9 @@ export class QuizManager {
   }
 
   getQuestionIdByPublicId(question_public_id: string): number | undefined {
-    const question = this.quiz.questions.find(q => q.public_id === question_public_id)
+    const question = this.quiz.questions.find(
+      (q) => q.public_id === question_public_id,
+    )
     return question?.id
   }
 
@@ -285,5 +287,39 @@ export class QuizManager {
     const answers = this.answers.get(question_public_id)
     if (!answers) return []
     return answers
+  }
+
+  getUsersGrade(): GradeItem[] {
+    const user_correct_answers_count = new Map<string, number>()
+    for (const question of this.quiz.questions) {
+      const answers = this.answers.get(question.public_id)
+      if (!answers) continue
+      for (const answer of answers) {
+        if (!answer.feedback.is_correct) continue
+        const user_correct_answers = user_correct_answers_count.get(
+          answer.user_public_id,
+        )
+        if (!user_correct_answers) {
+          user_correct_answers_count.set(answer.user_public_id, 1)
+          continue
+        }
+        user_correct_answers_count.set(
+          answer.user_public_id,
+          user_correct_answers + 1,
+        )
+      }
+    }
+    const n_questions = this.quiz.questions.length
+    const response = []
+    for (const [
+      user_public_id,
+      correct_answers,
+    ] of user_correct_answers_count.entries()) {
+      response.push({
+        user_public_id,
+        grade: n_questions > 0 ? correct_answers / n_questions : 0,
+      })
+    }
+    return response
   }
 }

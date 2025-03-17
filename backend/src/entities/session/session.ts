@@ -1,6 +1,7 @@
 import {
   InstructorSessionState,
   ParticipantSessionState,
+  PlayerGradeAndScoreItem,
   RankingType,
   RecoveredSessionAnswer,
   SessionStatus,
@@ -216,8 +217,7 @@ export class Session {
 
   async endSession(): Promise<void> {
     await this.saveSessionUpdate({ status: SessionStatus.FINISHED })
-    // TODO
-    // Salvar pontuação e nota dos players
+    await this.saveUsersGradeAndScore()
     this.sockets.instructor?.emit('game:end', { code: this.code })
     for (const socket of this.sockets.participants.values()) {
       socket.emit('game:end', { code: this.code })
@@ -249,6 +249,30 @@ export class Session {
       })
     }
     await sessionModel.saveSessionQuestionAnswersById(formatted_answers)
+  }
+
+  private async saveUsersGradeAndScore(): Promise<void> {
+    const grades = this.quiz_manager.getUsersGrade()
+    const score = this.ranking.getRanking()
+    const users_grade_score = new Map<number, PlayerGradeAndScoreItem>()
+    for (const user_grade of grades) {
+      const player_id = this.participants.get(user_grade.user_public_id)?.player_id
+      if (!player_id) continue
+      users_grade_score.set(player_id, { id: player_id, grade: user_grade.grade, score: 0 })
+    }
+    for (const score_entry of score) {
+      for (const user_score of score_entry.entries) {
+        const player_id = this.participants.get(user_score.id)?.player_id
+        if (!player_id) continue
+        const user_grade_score = users_grade_score.get(player_id)
+        if (!user_grade_score) {
+          users_grade_score.set(player_id, { id: player_id, grade: 0, score: user_score.score })
+        } else {
+          user_grade_score.score = user_grade_score.score
+        }
+      }
+    }
+    await sessionModel.savePlayersGradeAndScore([...users_grade_score.values()])
   }
 
   answerQuestion(

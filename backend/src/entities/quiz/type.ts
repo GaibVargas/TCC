@@ -54,6 +54,11 @@ export const quiz_resume_schema = z.object({
   can_open_session: z.boolean(),
 })
 
+export type GradeItem = {
+  user_public_id: string
+  grade: number
+}
+
 export type Question = z.infer<typeof question_schema>
 
 export type CreateQuizPayload = z.infer<typeof create_quiz_schema>
