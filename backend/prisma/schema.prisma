@@ -93,6 +93,7 @@ model Session {
   code String
   status String
   current_question_public_id String
+  grades_status String @default("not-sended")
 
   quiz Quiz @relation(fields: [quiz_id], references: [id])
   quiz_id Int

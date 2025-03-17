@@ -163,3 +163,17 @@ export const recoveredSessionSchema = z.object({
   answers: z.array(recoveredSessionAnswerSchema)
 })
 export type RecoveredSession = z.infer<typeof recoveredSessionSchema>
+
+export enum SessionGradesStatus {
+  NOT_SENDED = 'not-sended',
+  SENDED = 'sended',
+  ERROR = 'error'
+}
+
+export const sessionItemSchema = z.object({
+  public_id: z.string(),
+  participants: z.number(),
+  grades_status: z.nativeEnum(SessionGradesStatus),
+  updatedAt: z.date(),
+})
+export type SessionItem = z.infer<typeof sessionItemSchema>
