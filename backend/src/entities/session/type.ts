@@ -46,6 +46,7 @@ export enum SessionStatus {
   FEEDBACK_QUESTION = 'feedback-question',
   FEEDBACK_SESSION = 'feedback-session',
   ENDING = 'ending',
+  FINISHED = 'finished',
 }
 
 interface SessionBaseState extends SessionIdentification, SessionParticipants {
@@ -120,7 +121,7 @@ export type RankingType = {
 }[]
 
 interface SessionFeedbackSessionState extends SessionBaseState {
-  status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING
+  status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING | SessionStatus.FINISHED
   ranking: RankingType
 }
 

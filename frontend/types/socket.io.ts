@@ -25,6 +25,9 @@ export interface ListenEvents {
   'game:participant:update-state': (
     payload: ParticipantSessionState,
   ) => void
+  'game:end': (
+    payload: SessionIdentification,
+  ) => void
 }
 
 export type CustomSocket = Socket<ListenEvents, EmitEvents> & { auth: { access_token?: string } }

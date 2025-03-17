@@ -45,6 +45,7 @@ export enum SessionStatus {
   FEEDBACK_QUESTION = "feedback-question",
   FEEDBACK_SESSION = "feedback-session",
   ENDING = "ending",
+  FINISHED = 'finished',
 }
 
 interface SessionBaseState extends SessionIdentification, SessionParticipants {

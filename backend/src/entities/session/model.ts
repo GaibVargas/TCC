@@ -31,32 +31,6 @@ export async function createSession(
   return session.id
 }
 
-export async function updateStatusById(
-  id: number,
-  status: SessionStatus,
-): Promise<void> {
-  await prisma.session.update({
-    where: { id },
-    data: {
-      status,
-    },
-  })
-}
-
-export async function updateStatusAndCurrentQuestionById(
-  id: number,
-  status: SessionStatus,
-  current_question_public_id: string,
-): Promise<void> {
-  await prisma.session.update({
-    where: { id },
-    data: {
-      status,
-      current_question_public_id,
-    },
-  })
-}
-
 export type SessionUpdateData = Partial<
   Pick<Session, 'status' | 'current_question_public_id'>
 >
@@ -123,7 +97,10 @@ export async function getOngoingSessions(): Promise<RecoveredSession[]> {
   const sessions = await prisma.session.findMany({
     where: {
       NOT: {
-        status: SessionStatus.ENDING,
+        OR: [
+          { status: SessionStatus.ENDING },
+          { status: SessionStatus.FINISHED },
+        ],
       },
     },
     include: {
@@ -197,7 +174,10 @@ export async function findOngoingSessionsByAuthorId(
     where: {
       quiz: { author_id: user_id },
       NOT: {
-        status: SessionStatus.ENDING,
+        OR: [
+          { status: SessionStatus.ENDING },
+          { status: SessionStatus.FINISHED },
+        ],
       },
     },
     orderBy: { updatedAt: 'desc' },
@@ -225,7 +205,10 @@ export async function findFinishedSessionsByAuthorId(
     prisma.session.findMany({
       where: {
         quiz: { author_id: user_id },
-        status: SessionStatus.ENDING,
+        OR: [
+          { status: SessionStatus.ENDING },
+          { status: SessionStatus.FINISHED },
+        ],
       },
       orderBy: { updatedAt: 'desc' },
       ...getPrismaPagination(query),

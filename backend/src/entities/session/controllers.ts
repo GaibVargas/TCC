@@ -69,6 +69,23 @@ export async function sessionNextStep(
   reply.status(204).send()
 }
 
+export async function sessionEarlyEnd(
+  req: FastifyRequest<{ Params: { code: string } }>,
+  reply: FastifyReply,
+): Promise<void> {
+  userVerify(req.user)
+  const sessions_manager = SessionsManager.getInstance()
+  const session = sessions_manager.getSession(req.params.code)
+  if (!session.isValidInstructor(req.user.public_id)) {
+    throw new HttpRequestError({
+      status_code: 401,
+      message: 'Unauthorized',
+    })
+  }
+  await sessions_manager.removeSession(req.params.code)
+  reply.status(204).send()
+}
+
 export function getSessionState(
   req: FastifyRequest<{ Params: { code: string } }>,
   _reply: FastifyReply,
@@ -155,6 +172,7 @@ const sessionControllers = {
   participantLeaveSession,
   finishedSessionsByAuthor,
   ongoingSessionsByAuthor,
+  sessionEarlyEnd,
 }
 
 export default sessionControllers

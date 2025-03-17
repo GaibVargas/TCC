@@ -22,4 +22,5 @@ function instructorSessionRoutes(fastify: FastifyInstance, _options: unknown): v
   fastify.post('/', sessionControllers.createSession)
   fastify.post('/start/:code', sessionControllers.startSession)
   fastify.post('/next-step/:code', sessionControllers.sessionNextStep)
+  fastify.post('/early-end/:code', sessionControllers.sessionEarlyEnd)
 }

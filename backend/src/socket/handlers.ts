@@ -29,8 +29,7 @@ export async function participantJoin(
   socket: CustomSocket,
   payload: SessionIdentification,
 ): Promise<void> {
-  await delay(1)
-  sessions_manager.participantEnterSession(payload.code, socket.data.user, socket)
+  await sessions_manager.participantEnterSession(payload.code, socket.data.user, socket)
   console.log(socket.data.user.public_id, '[p] enter in', payload.code)
 }
 

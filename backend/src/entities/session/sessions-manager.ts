@@ -25,15 +25,22 @@ export class SessionsManager {
     }
   }
 
-  async newSession(instructor: MinUser, quiz: Quiz, quiz_id: number): Promise<string> {
+  async newSession(
+    instructor: MinUser,
+    quiz: Quiz,
+    quiz_id: number,
+  ): Promise<string> {
     const session = await Session.createSession(instructor, quiz, quiz_id)
     const code = session.getCode()
     this.active_sessions.set(code, session)
     return code
   }
 
-  removeSession(code: string): void {
-    this.active_sessions.delete(code)
+  async removeSession(code: string): Promise<void> {
+    const session = this.getSession(code)
+    await session.endSession()
+    // Remove a sessão depois de 30 segundos dando esse tempo para que os clientes conectados sejam notificados devidamente
+    setTimeout(() => this.active_sessions.delete(code), 30 * 1000)
   }
 
   getSession(code: string): Session {
@@ -52,7 +59,11 @@ export class SessionsManager {
     session.disconnectInstructor()
   }
 
-  async participantEnterSession(code: string, user: MinUser, socket: CustomSocket): Promise<void> {
+  async participantEnterSession(
+    code: string,
+    user: MinUser,
+    socket: CustomSocket,
+  ): Promise<void> {
     const session = this.getSession(code)
     await session.addParticipant(user)
     session.connectParticipant(user.public_id, socket)
@@ -71,6 +82,7 @@ export class SessionsManager {
 
   async sessionNextStep(code: string): Promise<void> {
     const session = this.getSession(code)
-    await session.nextStep()
+    const is_end_session = await session.nextStep()
+    if (is_end_session) await this.removeSession(code)
   }
 }

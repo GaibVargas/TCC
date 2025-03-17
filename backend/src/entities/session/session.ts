@@ -97,19 +97,24 @@ export class Session {
     }
   }
 
-  recoverQuizState(current_question_public_id: string, answers: RecoveredSessionAnswer[]): void {
+  recoverQuizState(
+    current_question_public_id: string,
+    answers: RecoveredSessionAnswer[],
+  ): void {
     const n_participants = this.getParticipantsId().length
     let question_index = 0
     let question = this.quiz_manager.getCurrentQuestion()
-    while(true) {
-      const question_answers = answers.filter(a => a.question.public_id === question.public_id)
+    while (true) {
+      const question_answers = answers.filter(
+        (a) => a.question.public_id === question.public_id,
+      )
       for (const question_answer of question_answers) {
         const result = this.quiz_manager.answerQuestion(
           question_answer.player.user.public_id,
           question_answer.question.public_id,
           question_answer.value,
           n_participants,
-          true
+          true,
         )
         if (!result) continue
         this.ranking.updateScore({
@@ -125,7 +130,8 @@ export class Session {
       question_index++
     }
 
-    if (this.status !== SessionStatus.SHOWING_QUESTION || !question.time_limit) return
+    if (this.status !== SessionStatus.SHOWING_QUESTION || !question.time_limit)
+      return
     if (question_index === 0) {
       this.status = SessionStatus.WAITING_START
       return
@@ -147,11 +153,6 @@ export class Session {
     this.db_id = id
   }
 
-  // TODO: Remove after tests
-  setDefaultCode(): void {
-    this.code = 'abc123'
-  }
-
   isValidInstructor(public_id: string): boolean {
     return this.instructor.public_id === public_id
   }
@@ -166,7 +167,8 @@ export class Session {
     this.sendStateUpdates()
   }
 
-  async nextStep(): Promise<void> {
+  async nextStep(): Promise<boolean> {
+    let finished_session = false
     switch (this.status) {
       case SessionStatus.WAITING_START:
         await this.saveSessionUpdate({ status: SessionStatus.SHOWING_QUESTION })
@@ -201,10 +203,26 @@ export class Session {
           this.quiz_manager.startCurrentQuestion()
         }
         break
+      case SessionStatus.ENDING:
+        await this.endSession()
+        finished_session = true
+        break
       default:
         break
     }
     this.sendStateUpdates()
+    return finished_session
+  }
+
+  async endSession(): Promise<void> {
+    await this.saveSessionUpdate({ status: SessionStatus.FINISHED })
+    // TODO
+    // Salvar pontuação e nota dos players
+    this.sockets.instructor?.emit('game:end', { code: this.code })
+    for (const socket of this.sockets.participants.values()) {
+      socket.emit('game:end', { code: this.code })
+    }
+    this.status = SessionStatus.FINISHED
   }
 
   private async saveSessionUpdate(data: SessionUpdateData): Promise<void> {
@@ -320,7 +338,7 @@ export class Session {
       }
     }
 
-    return { ...base, status: SessionStatus.ENDING, ranking: this.getRanking() }
+    return { ...base, status: this.status, ranking: this.getRanking() }
   }
 
   getParticipantState(user_public_id: string): ParticipantSessionState {
@@ -366,7 +384,7 @@ export class Session {
       }
     }
 
-    return { ...base, status: SessionStatus.ENDING, ranking: this.getRanking() }
+    return { ...base, status: this.status, ranking: this.getRanking() }
   }
 
   private sendStateUpdates(): void {

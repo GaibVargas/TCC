@@ -116,6 +116,9 @@ model Player {
   lms_outcome_source_id String
   lms_outcome_service_url String
 
+  score Int @default(0)
+  grade Float @default(0)
+
   user User @relation(fields: [user_id], references: [id])
   user_id Int
 
