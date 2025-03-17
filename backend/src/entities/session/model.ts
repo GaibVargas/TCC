@@ -1,8 +1,18 @@
 import { Session } from '@prisma/client'
 import { z } from 'zod'
 import prisma from '../../config/db'
-import { RecoveredSession, recoveredSessionSchema, SessionItem, sessionItemSchema, SessionStatus } from './type'
-import { Paginated, PaginationQuery, getPrismaPagination } from '../../common/pagination'
+import {
+  RecoveredSession,
+  recoveredSessionSchema,
+  SessionItem,
+  sessionItemSchema,
+  SessionStatus,
+} from './type'
+import {
+  Paginated,
+  PaginationQuery,
+  getPrismaPagination,
+} from '../../common/pagination'
 
 export async function createSession(
   code: string,
@@ -159,7 +169,7 @@ export async function getOngoingSessions(): Promise<RecoveredSession[]> {
           question: {
             select: {
               public_id: true,
-            }
+            },
           },
           player: {
             select: {
@@ -180,32 +190,37 @@ export async function getOngoingSessions(): Promise<RecoveredSession[]> {
   return formatted_sessions
 }
 
-export async function findOngoingSessionsByAuthorId(user_id: number): Promise<SessionItem[]> {
+export async function findOngoingSessionsByAuthorId(
+  user_id: number,
+): Promise<SessionItem[]> {
   const sessions = await prisma.session.findMany({
     where: {
       quiz: { author_id: user_id },
       NOT: {
         status: SessionStatus.ENDING,
-      }
+      },
     },
     orderBy: { updatedAt: 'desc' },
     include: {
       quiz: {
         select: {
-          title: true
-        }
+          title: true,
+        },
       },
       _count: {
         select: {
-          players: true
-        }
-      }
-    }
+          players: true,
+        },
+      },
+    },
   })
   return z.array(sessionItemSchema).parse(sessions)
 }
 
-export async function findFinishedSessionsByAuthorId(user_id: number, query: PaginationQuery): Promise<Paginated<SessionItem[]>> {
+export async function findFinishedSessionsByAuthorId(
+  user_id: number,
+  query: PaginationQuery,
+): Promise<Paginated<SessionItem[]>> {
   const [sessions, count] = await prisma.$transaction([
     prisma.session.findMany({
       where: {
@@ -217,28 +232,30 @@ export async function findFinishedSessionsByAuthorId(user_id: number, query: Pag
       include: {
         quiz: {
           select: {
-            title: true
-          }
+            title: true,
+          },
         },
         _count: {
           select: {
-            players: true
-          }
-        }
-      }
+            players: true,
+          },
+        },
+      },
     }),
     prisma.session.count({
       where: { quiz: { author_id: user_id } },
     }),
   ])
   return {
-    items: z.array(sessionItemSchema).parse(sessions.map(s => ({
-      public_id: s.public_id,
-      participants: s._count.players,
-      grades_status: s.grades_status,
-      updatedAt: s.updatedAt,
-    }))),
-    count
+    items: z.array(sessionItemSchema).parse(
+      sessions.map((s) => ({
+        public_id: s.public_id,
+        participants: s._count.players,
+        grades_status: s.grades_status,
+        updatedAt: s.updatedAt,
+      })),
+    ),
+    count,
   }
 }
 
@@ -248,6 +265,8 @@ const sessionModel = {
   saveSessionQuestionAnswersById,
   upsertPlayer,
   getOngoingSessions,
+  findFinishedSessionsByAuthorId,
+  findOngoingSessionsByAuthorId,
 }
 
 export default sessionModel

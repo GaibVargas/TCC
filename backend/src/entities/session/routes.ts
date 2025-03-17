@@ -17,6 +17,8 @@ export default function sessionRoutes(
 
 function instructorSessionRoutes(fastify: FastifyInstance, _options: unknown): void {
   fastify.register(isInstructorPlugin)
+  fastify.get('/ongoing', sessionControllers.ongoingSessionsByAuthor)
+  fastify.get('/finished', sessionControllers.finishedSessionsByAuthor)
   fastify.post('/', sessionControllers.createSession)
   fastify.post('/start/:code', sessionControllers.startSession)
   fastify.post('/next-step/:code', sessionControllers.sessionNextStep)

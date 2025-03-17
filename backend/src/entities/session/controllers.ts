@@ -8,8 +8,11 @@ import {
   InstructorSessionState,
   ParticipantSessionState,
   SessionCreatePayload,
+  SessionItem,
 } from './type'
 import HttpRequestError from '../../utils/error'
+import { Paginated, PaginationQuery } from '../../common/pagination'
+import sessionServices from './services'
 
 export async function createSession(
   req: FastifyRequest,
@@ -19,7 +22,7 @@ export async function createSession(
   const session = create_session_payload_schema.parse(req.body)
   const [quiz, quiz_id] = await Promise.all([
     quizServices.getQuiz(session.quiz_public_id),
-    quizServices.getQuizIdByPublicId(session.quiz_public_id)
+    quizServices.getQuizIdByPublicId(session.quiz_public_id),
   ])
   const sessions_manager = SessionsManager.getInstance()
   const code = await sessions_manager.newSession(req.user, quiz, quiz_id)
@@ -126,6 +129,22 @@ export function answerSessionQuestion(
   )
 }
 
+export async function finishedSessionsByAuthor(
+  req: FastifyRequest<{ Querystring: PaginationQuery }>,
+  _reply: FastifyReply,
+): Promise<Paginated<SessionItem[]>> {
+  userVerify(req.user)
+  return await sessionServices.getFinishedSessionsByAuthor(req.user, req.query)
+}
+
+export async function ongoingSessionsByAuthor(
+  req: FastifyRequest<{ Querystring: PaginationQuery }>,
+  _reply: FastifyReply,
+): Promise<SessionItem[]> {
+  userVerify(req.user)
+  return await sessionServices.getOngoingSessionsByAuthor(req.user)
+}
+
 const sessionControllers = {
   createSession,
   getSessionState,
@@ -134,6 +153,8 @@ const sessionControllers = {
   answerSessionQuestion,
   participantJoinSession,
   participantLeaveSession,
+  finishedSessionsByAuthor,
+  ongoingSessionsByAuthor,
 }
 
 export default sessionControllers
