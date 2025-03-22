@@ -185,6 +185,7 @@ export async function findOngoingSessionsByAuthorId(
     include: {
       quiz: {
         select: {
+          public_id: true,
           title: true,
         },
       },
@@ -195,7 +196,12 @@ export async function findOngoingSessionsByAuthorId(
       },
     },
   })
-  return z.array(sessionItemSchema).parse(sessions)
+  return z.array(sessionItemSchema).parse(
+    sessions.map((s) => ({
+      ...s,
+      participants: s._count.players,
+    })),
+  )
 }
 
 export async function findFinishedSessionsByAuthorId(
@@ -216,6 +222,7 @@ export async function findFinishedSessionsByAuthorId(
       include: {
         quiz: {
           select: {
+            public_id: true,
             title: true,
           },
         },
@@ -227,16 +234,20 @@ export async function findFinishedSessionsByAuthorId(
       },
     }),
     prisma.session.count({
-      where: { quiz: { author_id: user_id } },
+      where: {
+        quiz: { author_id: user_id },
+        OR: [
+          { status: SessionStatus.ENDING },
+          { status: SessionStatus.FINISHED },
+        ],
+      },
     }),
   ])
   return {
     items: z.array(sessionItemSchema).parse(
       sessions.map((s) => ({
-        public_id: s.public_id,
+        ...s,
         participants: s._count.players,
-        grades_status: s.grades_status,
-        updatedAt: s.updatedAt,
       })),
     ),
     count,

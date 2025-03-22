@@ -83,7 +83,7 @@ export class Session {
     }
     return recovered_sessions
   }
-
+  
   recoverAdditionalData(
     code: string,
     status: SessionStatus,

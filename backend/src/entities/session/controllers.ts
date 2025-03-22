@@ -11,7 +11,7 @@ import {
   SessionItem,
 } from './type'
 import HttpRequestError from '../../utils/error'
-import { Paginated, PaginationQuery } from '../../common/pagination'
+import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
 import sessionServices from './services'
 
 export async function createSession(
@@ -151,11 +151,11 @@ export async function finishedSessionsByAuthor(
   _reply: FastifyReply,
 ): Promise<Paginated<SessionItem[]>> {
   userVerify(req.user)
-  return await sessionServices.getFinishedSessionsByAuthor(req.user, req.query)
+  return await sessionServices.getFinishedSessionsByAuthor(req.user, pagination_query_schema.parse(req.query))
 }
 
 export async function ongoingSessionsByAuthor(
-  req: FastifyRequest<{ Querystring: PaginationQuery }>,
+  req: FastifyRequest,
   _reply: FastifyReply,
 ): Promise<SessionItem[]> {
   userVerify(req.user)

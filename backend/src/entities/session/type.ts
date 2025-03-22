@@ -173,6 +173,11 @@ export enum SessionGradesStatus {
 
 export const sessionItemSchema = z.object({
   public_id: z.string(),
+  code: z.string(),
+  quiz: z.object({
+    public_id: z.string(),
+    title: z.string(),
+  }),
   participants: z.number(),
   grades_status: z.nativeEnum(SessionGradesStatus),
   updatedAt: z.date(),
