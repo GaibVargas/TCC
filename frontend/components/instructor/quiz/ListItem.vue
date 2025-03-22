@@ -55,7 +55,7 @@ function editQuiz() {
 <template>
   <div class="pa-4 border-thin rounded d-flex justify-space-between"
     :class="[remove_loading ? 'border-opacity' : 'border-opacity-50 cursor-pointer']" @click="editQuiz">
-    <div class="content" :class="{ 'text-disabled': remove_loading }">
+    <div class="content d-flex align-center" :class="{ 'text-disabled': remove_loading }">
       <p class="text-body-1 d-inline-block mr-4">{{ quiz_title }}</p>
       <span class="d-inline-block text-caption">{{ quiz_n_questions_description }}</span>
     </div>

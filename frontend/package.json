@@ -10,8 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.2.0",
     "@mdi/font": "^7.4.47",
     "@pinia/nuxt": "^0.9.0",
+    "date-fns": "^4.1.0",
     "nuxt": "^3.15.2",
     "pinia": "^2.3.1",
     "pinia-plugin-persistedstate": "^4.2.0",

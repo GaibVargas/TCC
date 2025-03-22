@@ -143,3 +143,20 @@ export type ParticipantSessionState =
   | SessionFeedbackSessionState
 
 export type SessionState = InstructorSessionState | ParticipantSessionState
+
+export enum SessionGradesStatus {
+  NOT_SENDED = 'not-sended',
+  SENDED = 'sended',
+  ERROR = 'error'
+}
+export type SessionItem = {
+  public_id: string
+  code: string
+  quiz: {
+    public_id: string
+    title: string
+  }
+  participants: number
+  grades_status: SessionGradesStatus
+  updatedAt: Date
+}
