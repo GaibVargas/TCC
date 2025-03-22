@@ -268,7 +268,7 @@ export class Session {
         if (!user_grade_score) {
           users_grade_score.set(player_id, { id: player_id, grade: 0, score: user_score.score })
         } else {
-          user_grade_score.score = user_grade_score.score
+          user_grade_score.score = user_score.score
         }
       }
     }
