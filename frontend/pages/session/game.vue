@@ -37,6 +37,7 @@ onMounted(() => {
     useNuxtApp().$toast.info("Sessão encerrada")
     session_store.$reset()
     navigateTo('/session/entry')
+    socket.disconnect()
   })
 })
 
