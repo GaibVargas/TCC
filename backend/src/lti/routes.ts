@@ -11,4 +11,5 @@ export default function ltiRoutes(
 ): void {
   fastify.post('/login', ltiControllers.startLauch.bind(ltiControllers))
   fastify.post('/redirect', ltiControllers.login.bind(ltiControllers))
+  fastify.get('/jwks', ltiControllers.getJWKS.bind(ltiControllers))
 }

@@ -1,9 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { LTIServices } from './services'
-import {
-  getUserAuthToken,
-  updateOrCreateUser,
-} from '../entities/user/services'
+import { JWKS, LTIServices } from './services'
+import { getUserAuthToken, updateOrCreateUser } from '../entities/user/services'
 import { config } from '../config/env'
 
 export default class LTIControllers {
@@ -18,13 +15,15 @@ export default class LTIControllers {
     reply.redirect(LTI_REDIRECT_URL)
   }
 
-  async login(
-    req: FastifyRequest,
-    reply: FastifyReply,
-  ): Promise<void> {
+  async login(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     const ltiUser = await this.ltiService.getUser(req.body)
     const user = await updateOrCreateUser(ltiUser)
     const auth_token = getUserAuthToken(user)
     reply.redirect(`${config.host.FRONTEND_URL}/auth/${auth_token}`)
+  }
+
+  async getJWKS(_req: FastifyRequest, _reply: FastifyReply): Promise<JWKS> {
+    const keys = await this.ltiService.getJWKSKeys()
+    return keys
   }
 }

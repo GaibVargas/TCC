@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from 'zod'
 
 export type MoodleUser = {
   nonce: string //'a9bc123994825af7e672e0a09302cf31'
@@ -62,15 +62,6 @@ export type MoodleUser = {
   }
 }
 
-export type JWKSKey = {
-  kty: string
-  kid: string
-  use: string
-  alg: string
-  e: string
-  n: string
-}
-
 export const startLauchPayloadSchema = z.object({
   iss: z.string(),
   target_link_uri: z.string().url(),
@@ -88,3 +79,10 @@ export const getUserPayloadSchema = z.object({
 })
 
 export type GetUserPayload = z.infer<typeof getUserPayloadSchema>
+
+export type GradesToken = {
+  access_token: string
+  token_type: string
+  expires_in: string
+  scope: string
+}

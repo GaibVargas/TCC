@@ -1,12 +1,12 @@
 import { randomBytes } from 'node:crypto'
 import { CreateUserPayload, SessionPlayer } from '../../entities/user/type'
-import { LTIServices } from '../services'
+import { JWKS, LTIServices } from '../services'
 import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
 import moodleUris from './links'
 import { LTI_REDIRECT_URL } from '../constants'
 import {
   getUserPayloadSchema,
-  JWKSKey,
+  GradesToken,
   MoodleUser,
   startLauchPayloadSchema,
   StartLaunchPayload,
@@ -14,6 +14,7 @@ import {
 import { getUserRole } from '../../entities/user/services'
 import fs from 'node:fs'
 import path from 'node:path'
+import axios from 'axios'
 
 export class MoodleLTIServices implements LTIServices {
   async startLaunch(payload: unknown): Promise<string> {
@@ -94,7 +95,7 @@ export class MoodleLTIServices implements LTIServices {
     return this.formatUser(user)
   }
 
-  private async getJWKSKeys(): Promise<{ keys: JWKSKey[] }> {
+  async getJWKSKeys(): Promise<JWKS> {
     const jwks_keys_filepath = path.resolve(
       __dirname,
       '..',
@@ -105,7 +106,7 @@ export class MoodleLTIServices implements LTIServices {
     )
     try {
       const keysFile = await fs.promises.readFile(jwks_keys_filepath, 'utf8')
-      return JSON.parse(keysFile) as { keys: JWKSKey[] }
+      return JSON.parse(keysFile) as JWKS
     } catch (error) {
       console.error(error)
       throw error
@@ -127,7 +128,7 @@ export class MoodleLTIServices implements LTIServices {
     })
   }
 
-  private async getAccessToken(iss: string, clientId: string): Promise<string> {
+  private async getAccessToken(iss: string, clientId: string): Promise<GradesToken> {
     const tokenEndpoint = moodleUris(iss).token
     const clientAssertion = await this.generateClientAssertion(
       tokenEndpoint,
@@ -148,13 +149,13 @@ export class MoodleLTIServices implements LTIServices {
     )
 
     try {
-      const response = await fetch(`${tokenEndpoint}/${params.toString()}`, {
-        method: 'POST',
+      console.log('chamando', tokenEndpoint, clientId)
+      const response = await axios.post(tokenEndpoint, params, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       })
-      return await response.text()
+      return response.data as GradesToken
     } catch (error) {
       console.error('Error getting moodle access token', error)
       throw error
@@ -167,6 +168,6 @@ export class MoodleLTIServices implements LTIServices {
       session_player[0].lms_iss,
       session_player[0].lms_client_id,
     )
-    console.log(token)
+    console.log(token.token_type, token.access_token)
   }
 }
