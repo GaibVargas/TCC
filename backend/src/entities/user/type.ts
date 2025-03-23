@@ -43,15 +43,21 @@ export const minUserSchema = userSchema.pick({
 })
 export type MinUser = z.infer<typeof minUserSchema>
 
-export type UserLMSData = {
-  lms_iss: string
-  lms_platform: string
-  lms_user_id: string
-  lms_version: string
-  lms_client_id: string
-  lms_outcome_source_id: string
-  lms_outcome_service_url: string
-}
+export const userLMSDataSchema = z.object({
+  lms_iss: z.string(),
+  lms_platform: z.string(),
+  lms_user_id: z.string(),
+  lms_version: z.string(),
+  lms_client_id: z.string(),
+  lms_outcome_source_id: z.string(),
+  lms_outcome_service_url: z.string(),
+})
+export type UserLMSData = z.infer<typeof userLMSDataSchema>
+
+export const sessionPlayerSchema = userLMSDataSchema.extend({
+  grade: z.number(),
+})
+export type SessionPlayer = z.infer<typeof sessionPlayerSchema>
 
 export const stubUser: User = {
   id: 1,

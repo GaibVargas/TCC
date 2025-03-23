@@ -13,6 +13,7 @@ import {
 import HttpRequestError from '../../utils/error'
 import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
 import sessionServices from './services'
+import { MoodleLTIServices } from '../../lti/moodle/services'
 
 export async function createSession(
   req: FastifyRequest,
@@ -162,6 +163,16 @@ export async function ongoingSessionsByAuthor(
   return await sessionServices.getOngoingSessionsByAuthor(req.user)
 }
 
+export async function sessionSendGrades(
+  req: FastifyRequest<{ Params: { code: string } }>,
+  _reply: FastifyReply,
+): Promise<void> {
+  userVerify(req.user)
+  const results = await sessionServices.getPlayersResult(req.user.id, req.params.code)
+  const moodleServices = new MoodleLTIServices()
+  await moodleServices.sendGrade(results)
+}
+
 const sessionControllers = {
   createSession,
   getSessionState,
@@ -173,6 +184,7 @@ const sessionControllers = {
   finishedSessionsByAuthor,
   ongoingSessionsByAuthor,
   sessionEarlyEnd,
+  sessionSendGrades,
 }
 
 export default sessionControllers

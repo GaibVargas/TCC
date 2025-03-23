@@ -1,30 +1,19 @@
 import { randomBytes } from 'node:crypto'
-import { z } from 'zod'
-import { CreateUserPayload, User } from '../../entities/user/type'
+import { CreateUserPayload, SessionPlayer } from '../../entities/user/type'
 import { LTIServices } from '../services'
 import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
 import moodleUris from './links'
 import { LTI_REDIRECT_URL } from '../constants'
-import { MoodleUser } from './types'
+import {
+  getUserPayloadSchema,
+  JWKSKey,
+  MoodleUser,
+  startLauchPayloadSchema,
+  StartLaunchPayload,
+} from './types'
 import { getUserRole } from '../../entities/user/services'
-
-export const startLauchPayloadSchema = z.object({
-  iss: z.string(),
-  target_link_uri: z.string().url(),
-  login_hint: z.string(),
-  lti_message_hint: z.string(),
-  client_id: z.string(),
-  lti_deployment_id: z.string(),
-})
-
-export type StartLaunchPayload = z.infer<typeof startLauchPayloadSchema>
-
-export const getUserPayloadSchema = z.object({
-  id_token: z.string(),
-  state: z.string(),
-})
-
-export type GetUserPayload = z.infer<typeof getUserPayloadSchema>
+import fs from 'node:fs'
+import path from 'node:path'
 
 export class MoodleLTIServices implements LTIServices {
   async startLaunch(payload: unknown): Promise<string> {
@@ -105,7 +94,79 @@ export class MoodleLTIServices implements LTIServices {
     return this.formatUser(user)
   }
 
-  async sendGrade(user: User, grade: number): Promise<void> {
-    await new Promise((resolve) => resolve({ user, grade }))
+  private async getJWKSKeys(): Promise<{ keys: JWKSKey[] }> {
+    const jwks_keys_filepath = path.resolve(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'keys',
+      'jwks_public.json',
+    )
+    try {
+      const keysFile = await fs.promises.readFile(jwks_keys_filepath, 'utf8')
+      return JSON.parse(keysFile) as { keys: JWKSKey[] }
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  private async generateClientAssertion(
+    tokenEndpoint: string,
+    clientId: string,
+  ): Promise<string> {
+    const keys = await this.getJWKSKeys()
+    const payload = {
+      iss: clientId,
+      sub: clientId,
+      aud: tokenEndpoint,
+    }
+    return await signMessage(payload, {
+      header: { alg: 'RS256', kid: keys.keys[0].kid },
+    })
+  }
+
+  private async getAccessToken(iss: string, clientId: string): Promise<string> {
+    const tokenEndpoint = moodleUris(iss).token
+    const clientAssertion = await this.generateClientAssertion(
+      tokenEndpoint,
+      clientId,
+    )
+
+    const params = new URLSearchParams()
+    params.append('grant_type', 'client_credentials')
+    params.append('client_id', clientId)
+    params.append(
+      'client_assertion_type',
+      'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+    )
+    params.append('client_assertion', clientAssertion)
+    params.append(
+      'scope',
+      'https://purl.imsglobal.org/spec/lti-bo/scope/basicoutcome',
+    )
+
+    try {
+      const response = await fetch(`${tokenEndpoint}/${params.toString()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+      return await response.text()
+    } catch (error) {
+      console.error('Error getting moodle access token', error)
+      throw error
+    }
+  }
+
+  async sendGrade(session_player: SessionPlayer[]): Promise<void> {
+    if (!session_player.length) return
+    const token = await this.getAccessToken(
+      session_player[0].lms_iss,
+      session_player[0].lms_client_id,
+    )
+    console.log(token)
   }
 }

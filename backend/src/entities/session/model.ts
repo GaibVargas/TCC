@@ -14,6 +14,7 @@ import {
   PaginationQuery,
   getPrismaPagination,
 } from '../../common/pagination'
+import { SessionPlayer, sessionPlayerSchema } from '../user/type'
 
 export async function createSession(
   code: string,
@@ -271,6 +272,32 @@ export async function savePlayersGradeAndScore(
   await prisma.$executeRawUnsafe(query)
 }
 
+export async function findPlayersResultBySessionId(session_id: number): Promise<SessionPlayer[]> {
+  const players = await prisma.player.findMany({
+    where: { session_id }
+  })
+  return sessionPlayerSchema.array().parse(players)
+}
+
+export async function findSessionIdByCode(author_id: number, code: string): Promise<{ id: number, author_id: number } | null> {
+  const session = await prisma.session.findFirst({
+    where: { code },
+    select: {
+      id: true,
+      quiz: {
+        select: {
+          author_id: true
+        }
+      }
+    }
+  })
+  if (!session) return null
+  return {
+    id: session.id,
+    author_id: session.quiz.author_id,
+  }
+}
+
 const sessionModel = {
   createSession,
   updateSessionById,
@@ -280,6 +307,8 @@ const sessionModel = {
   findFinishedSessionsByAuthorId,
   findOngoingSessionsByAuthorId,
   savePlayersGradeAndScore,
+  findPlayersResultBySessionId,
+  findSessionIdByCode,
 }
 
 export default sessionModel

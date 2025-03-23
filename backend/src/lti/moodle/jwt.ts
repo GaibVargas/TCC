@@ -5,6 +5,7 @@ import {
   JwtPayload,
   sign,
   SigningKeyCallback,
+  SignOptions,
   verify,
 } from 'jsonwebtoken'
 import jwksClient from 'jwks-client'
@@ -13,7 +14,7 @@ import { resolve } from 'node:path'
 
 type JWTMessage = string | Buffer | object
 
-export async function signMessage(message: JWTMessage): Promise<string> {
+export async function signMessage(message: JWTMessage, options: SignOptions = {}): Promise<string> {
   const privateKeyFilepath = resolve(
     __dirname,
     '..',
@@ -26,6 +27,7 @@ export async function signMessage(message: JWTMessage): Promise<string> {
   return sign(message, privateKey, {
     algorithm: 'RS256',
     expiresIn: '5m',
+    ...options,
   })
 }
 

@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 export type MoodleUser = {
   nonce: string //'a9bc123994825af7e672e0a09302cf31'
   iat: number // 1737827298
@@ -59,3 +61,30 @@ export type MoodleUser = {
     lineitem: string // 'http://localhost/moodle/mod/lti/services.php/2/lineitems/8/lineitem?type_id=6'
   }
 }
+
+export type JWKSKey = {
+  kty: string
+  kid: string
+  use: string
+  alg: string
+  e: string
+  n: string
+}
+
+export const startLauchPayloadSchema = z.object({
+  iss: z.string(),
+  target_link_uri: z.string().url(),
+  login_hint: z.string(),
+  lti_message_hint: z.string(),
+  client_id: z.string(),
+  lti_deployment_id: z.string(),
+})
+
+export type StartLaunchPayload = z.infer<typeof startLauchPayloadSchema>
+
+export const getUserPayloadSchema = z.object({
+  id_token: z.string(),
+  state: z.string(),
+})
+
+export type GetUserPayload = z.infer<typeof getUserPayloadSchema>
