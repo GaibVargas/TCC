@@ -28,7 +28,7 @@ async function sendGrades() {
   const toast = useNuxtApp().$toast
   try {
     are_grades_loading.value = true
-    await useApiFetch(`/session/grades/${props.session.public_id}`, {
+    await useApiFetch(`/session/send-grades/${props.session.code}`, {
       method: 'POST'
     })
     toast.success('Notas enviadas!')
