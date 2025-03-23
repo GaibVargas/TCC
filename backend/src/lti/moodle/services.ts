@@ -1,4 +1,8 @@
 import { randomBytes } from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
+import axios from 'axios'
+import xmlbuilder from 'xmlbuilder'
 import { CreateUserPayload, SessionPlayer } from '../../entities/user/type'
 import { JWKS, LTIServices } from '../services'
 import { signMessage, verifyMessage, verifyMessageOnISS } from './jwt'
@@ -12,9 +16,6 @@ import {
   StartLaunchPayload,
 } from './types'
 import { getUserRole } from '../../entities/user/services'
-import fs from 'node:fs'
-import path from 'node:path'
-import axios from 'axios'
 
 export class MoodleLTIServices implements LTIServices {
   async startLaunch(payload: unknown): Promise<string> {
@@ -128,7 +129,10 @@ export class MoodleLTIServices implements LTIServices {
     })
   }
 
-  private async getAccessToken(iss: string, clientId: string): Promise<GradesToken> {
+  private async getAccessToken(
+    iss: string,
+    clientId: string,
+  ): Promise<GradesToken> {
     const tokenEndpoint = moodleUris(iss).token
     const clientAssertion = await this.generateClientAssertion(
       tokenEndpoint,
@@ -149,7 +153,6 @@ export class MoodleLTIServices implements LTIServices {
     )
 
     try {
-      console.log('chamando', tokenEndpoint, clientId)
       const response = await axios.post(tokenEndpoint, params, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -162,12 +165,48 @@ export class MoodleLTIServices implements LTIServices {
     }
   }
 
-  async sendGrade(session_player: SessionPlayer[]): Promise<void> {
-    if (!session_player.length) return
+  async sendGrade(session_players: SessionPlayer[]): Promise<void> {
+    if (!session_players.length) return
     const token = await this.getAccessToken(
-      session_player[0].lms_iss,
-      session_player[0].lms_client_id,
+      session_players[0].lms_iss,
+      session_players[0].lms_client_id,
     )
-    console.log(token.token_type, token.access_token)
+    const requests = []
+    for (const player of session_players) {
+      const body = this.getXMLGradesBody(player)
+      requests.push(axios.post(player.lms_outcome_service_url, body, {
+        headers: {
+          'Content-Type': 'application/xml',
+          Authorization: `${token.token_type} ${token.access_token}`,
+        },
+      }))
+    }
+    await Promise.all(requests)
+  }
+
+  private getXMLGradesBody(player: SessionPlayer): string {
+    const body = xmlbuilder.create('imsx_POXEnvelopeRequest', { encoding: 'UTF-8' })
+    .ele('imsx_POXHeader')
+      .ele('imsx_POXRequestHeaderInfo')
+        .ele('imsx_version', 'V1.0').up()
+        .ele('imsx_messageIdentifier', String(Date.now())).up()
+      .up()
+    .up()
+    .ele('imsx_POXBody')
+      .ele('replaceResultRequest')
+        .ele('resultRecord')
+          .ele('sourcedGUID')
+            .ele('sourcedId', player.lms_outcome_source_id).up()
+          .up()
+          .ele('result')
+            .ele('resultScore')
+              .ele('textString', player.grade).up()
+            .up()
+          .up()
+        .up()
+      .up()
+    .up()
+    .end()
+    return body.toString()
   }
 }
