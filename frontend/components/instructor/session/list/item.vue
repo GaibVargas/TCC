@@ -31,6 +31,7 @@ async function sendGrades() {
     await useApiFetch(`/session/send-grades/${props.session.code}`, {
       method: 'POST'
     })
+    grades_sended.value = true
     toast.success('Notas enviadas!')
   } catch (error) {
     console.error('Error sendind grades', error)
