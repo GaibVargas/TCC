@@ -85,9 +85,21 @@ const loadingNextStep = ref(false)
 async function sessionNextStep() {
   try {
     loadingNextStep.value = true
+    let send_grades = false
+
+    if (session.value.status === SessionStatus.ENDING) {
+      send_grades = await useNuxtApp().$confirm({
+        title: 'Envio de notas',
+        message: 'Deseja enviar as notas dos participantes ao Moodle?',
+        confirmText: 'Sim',
+        cancelText: 'Não'
+      })
+    }
+
     await useApiFetch(`/session/next-step/${session.value.code}`, {
       method: 'POST'
     })
+    if (send_grades) sendGrades()
   } catch (error) {
     console.error(error)
     useNuxtApp().$toast.error('Erro ao continuar sessão. Tente novamente mais tarde')
@@ -96,13 +108,25 @@ async function sessionNextStep() {
   }
 }
 
+async function sendGrades() {
+  try {
+    await useApiFetch(`/session/send-grades/${session.value.code}`, {
+      method: 'POST'
+    })
+    useNuxtApp().$toast.success('Notas enviadas!')
+  } catch (error) {
+    console.error(error)
+    useNuxtApp().$toast.error('Erro ao enviar notas ao Moodle')
+  }
+}
+
 const loadingEndSession = ref(false)
 async function endSession() {
   try {
     const confirmed = await useNuxtApp().$confirm({
-      title: "Confirmação de encerramento de sessão",
-      message: "Tem certeza de que deseja encerrar sessão?",
-      confirmText: "Sim",
+      title: 'Encerramento de sessão',
+      message: 'Tem certeza de que deseja encerrar sessão?',
+      confirmText: 'Sim',
     })
 
     if (!confirmed) return
@@ -139,8 +163,8 @@ const ranking_label = computed(() => {
   </v-container>
   <div v-if="session.status !== SessionStatus.WAITING_START"
     class="border-t-thin py-2 w-100 d-flex ga-8 align-center justify-center">
-    <v-btn variant="outlined" @click="endSession" :loading="loadingEndSession"
-      :disabled="loadingNextStep">Encerrar</v-btn>
+    <v-btn v-if="session.status !== SessionStatus.ENDING" variant="outlined" @click="endSession"
+      :loading="loadingEndSession" :disabled="loadingNextStep">Encerrar</v-btn>
     <v-btn color="primary" @click="sessionNextStep" :loading="loadingNextStep" :disabled="loadingEndSession">{{
       session.status ===
         SessionStatus.ENDING ? 'Encerrar' : 'Avançar' }}</v-btn>

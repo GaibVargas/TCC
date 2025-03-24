@@ -24,7 +24,7 @@ const emit = defineEmits<{
 const remove_loading = ref(false)
 async function removeQuiz() {
   const confirmed = await useNuxtApp().$confirm({
-    title: "Confirmação de remoção de quiz",
+    title: "Remoção de quiz",
     message: "Tem certeza de que deseja remover esse quiz?",
     confirmText: "Sim",
   })

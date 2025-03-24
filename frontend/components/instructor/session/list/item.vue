@@ -19,7 +19,7 @@ const were_grades_send = computed(() => grades_sended.value || props.session.gra
 const are_grades_loading = ref(false)
 async function sendGrades() {
   const confirmed = await useNuxtApp().$confirm({
-    title: "Confirmação de envio de notas ao Moodle",
+    title: "Envio de notas",
     message: "Tem certeza de que deseja enviar as notas dos participantes ao Moodle?",
     confirmText: "Sim",
   })
@@ -43,7 +43,7 @@ async function sendGrades() {
 const is_loading_end_session = ref(false)
 async function endSession() {
   const confirmed = await useNuxtApp().$confirm({
-    title: "Confirmação de encerramento de sessão",
+    title: "Encerramento de sessão",
     message: "Tem certeza de que deseja encerrar sessão?",
     confirmText: "Sim",
   })
