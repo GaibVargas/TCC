@@ -8,6 +8,7 @@ import {
   InstructorSessionState,
   ParticipantSessionState,
   SessionCreatePayload,
+  SessionGradesStatus,
   SessionItem,
 } from './type'
 import HttpRequestError from '../../utils/error'
@@ -170,7 +171,13 @@ export async function sessionSendGrades(
   userVerify(req.user)
   const results = await sessionServices.getPlayersResult(req.user.id, req.params.code)
   const moodleServices = new MoodleLTIServices()
-  await moodleServices.sendGrade(results)
+  try {
+    await moodleServices.sendGrade(results)
+    await sessionServices.setSessionGradeStatus(req.user.id, req.params.code, SessionGradesStatus.SENDED)
+  } catch (error) {
+    await sessionServices.setSessionGradeStatus(req.user.id, req.params.code, SessionGradesStatus.ERROR)
+    throw error
+  }
 }
 
 const sessionControllers = {

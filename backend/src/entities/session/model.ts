@@ -5,6 +5,7 @@ import {
   PlayerGradeAndScoreItem,
   RecoveredSession,
   recoveredSessionSchema,
+  SessionGradesStatus,
   SessionItem,
   sessionItemSchema,
   SessionStatus,
@@ -279,7 +280,7 @@ export async function findPlayersResultBySessionId(session_id: number): Promise<
   return sessionPlayerSchema.array().parse(players)
 }
 
-export async function findSessionIdByCode(author_id: number, code: string): Promise<{ id: number, author_id: number } | null> {
+export async function findSessionIdByCode(code: string): Promise<{ id: number, author_id: number } | null> {
   const session = await prisma.session.findFirst({
     where: { code },
     select: {
@@ -298,6 +299,15 @@ export async function findSessionIdByCode(author_id: number, code: string): Prom
   }
 }
 
+export async function updateSessionGradeStatusById(id: number, status: SessionGradesStatus): Promise<void> {
+  await prisma.session.update({
+    where: { id },
+    data: {
+      grades_status: status
+    }
+  })
+}
+
 const sessionModel = {
   createSession,
   updateSessionById,
@@ -309,6 +319,7 @@ const sessionModel = {
   savePlayersGradeAndScore,
   findPlayersResultBySessionId,
   findSessionIdByCode,
+  updateSessionGradeStatusById,
 }
 
 export default sessionModel
