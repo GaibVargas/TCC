@@ -2,7 +2,7 @@ import { Paginated, PaginationQuery } from '../../common/pagination'
 import HttpRequestError from '../../utils/error'
 import { MinUser, SessionPlayer } from '../user/type'
 import sessionModel from './model'
-import { SessionGradesStatus, SessionItem, SessionReportItem } from './type'
+import { SessionGradesStatus, SessionItem, SessionReport } from './type'
 
 export async function getFinishedSessionsByAuthor(
   user: MinUser,
@@ -57,7 +57,7 @@ export async function setSessionGradeStatus(
 export async function sessionReportView(
   user_id: number,
   id: string,
-): Promise<SessionReportItem> {
+): Promise<SessionReport> {
   const session_report = await sessionModel.findSessionReportByPubliId(id)
   if (!session_report)
     throw new HttpRequestError({

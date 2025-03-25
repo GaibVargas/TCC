@@ -230,7 +230,7 @@ const quiz_session_report = z.object({
   is_deleted: z.boolean(),
   questions: z.array(question_session_report_Schema),
 })
-export const session_report_item_schema = z.object({
+export const session_report_schema = z.object({
   public_id: z.string(),
   status: z.nativeEnum(SessionStatus),
   grades_status: z.nativeEnum(SessionGradesStatus),
@@ -238,4 +238,4 @@ export const session_report_item_schema = z.object({
   players: z.array(player_session_report_schema),
 })
 
-export type SessionReportItem = z.infer<typeof session_report_item_schema>
+export type SessionReport = z.infer<typeof session_report_schema>

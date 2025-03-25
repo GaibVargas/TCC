@@ -10,7 +10,7 @@ import {
   SessionCreatePayload,
   SessionGradesStatus,
   SessionItem,
-  SessionReportItem,
+  SessionReport,
 } from './type'
 import HttpRequestError from '../../utils/error'
 import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
@@ -185,7 +185,7 @@ export async function sessionSendGrades(
 export async function sessionReportView(
   req: FastifyRequest<{ Params: PublicIdParams }>,
   _reply: FastifyReply,
-): Promise<SessionReportItem> {
+): Promise<SessionReport> {
   userVerify(req.user)
   return await sessionServices.sessionReportView(req.user.id, req.params.public_id)
 }

@@ -9,8 +9,8 @@ import {
   SessionItem,
   session_item_schema,
   SessionStatus,
-  session_report_item_schema,
-  SessionReportItem,
+  session_report_schema,
+  SessionReport,
 } from './type'
 import {
   Paginated,
@@ -326,7 +326,7 @@ export async function updateSessionGradeStatusById(
   })
 }
 
-export async function findSessionReportByPubliId(id: string): Promise<SessionReportItem | null> {
+export async function findSessionReportByPubliId(id: string): Promise<SessionReport | null> {
   const session_id = await findSessionIdByPublicId(id)
   const session = await prisma.session.findFirst({
     where: { public_id: id },
@@ -403,7 +403,7 @@ export async function findSessionReportByPubliId(id: string): Promise<SessionRep
       correct_answer_percentage,
     }
   })
-  return session_report_item_schema.parse({
+  return session_report_schema.parse({
     ...session,
     quiz: {
       ...session.quiz,
