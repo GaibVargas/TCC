@@ -407,7 +407,7 @@ export async function findSessionReportByPubliId(id: string): Promise<SessionRep
     ...session,
     quiz: {
       ...session.quiz,
-      questions,
+      questions: questions.filter(q => !q.is_deleted || (q.is_deleted && q.answers.length > 0) ),
     }
   })
 }
