@@ -181,10 +181,13 @@ async function sendGrades() {
 const is_loading_report = ref(false)
 async function getSessionReport() {
   try {
+    is_loading_report.value = true
     await delay(1000)
     toast.success('Relatório pronto. Verifique a aba de downloads.')
   } catch (error) {
     toast.error('Erro ao gerar relatório. Tente novamente mais tarde.')
+  } finally {
+    is_loading_report.value = false
   }
 }
 </script>
@@ -198,15 +201,25 @@ async function getSessionReport() {
         <p class="text-subtitle-2">Última atualização em: {{ session_updatedAt }}</p>
       </div>
       <div class="actions d-flex flex-column ga-2">
-        <v-btn v-if="!were_grades_send" variant="outlined" density="compact" :loading="are_grades_loading" @click.stop="sendGrades">Enviar
+        <v-btn v-if="!were_grades_send" variant="outlined" density="compact" :loading="are_grades_loading"
+          @click.stop="sendGrades">Enviar
           notas</v-btn>
-        <v-btn variant="outlined" density="compact" :loading="is_loading_report" @click.stop="getSessionReport">Gerar relatório</v-btn>
+        <v-btn variant="outlined" density="compact" :loading="is_loading_report" @click.stop="getSessionReport">Gerar
+          relatório</v-btn>
       </div>
     </div>
     <v-tabs v-model="tab" density="compact" selected-class="active-tab">
       <v-tab value="question">Questões</v-tab>
       <v-tab value="participant">Participantes</v-tab>
     </v-tabs>
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="question">
+        <InstructorSessionQuestionsTable :session="session" />
+      </v-tabs-window-item>
+      <v-tabs-window-item value="participant">
+        <InstructorSessionParticipantsTable :session="session" />
+      </v-tabs-window-item>
+    </v-tabs-window>
   </v-container>
 </template>
 

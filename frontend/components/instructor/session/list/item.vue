@@ -87,7 +87,7 @@ function goToSession() {
     <div v-if="!is_active" class="actions">
       <v-btn size="small" color="primary" flat v-if="!were_grades_send" class="mr-4" :loading="are_grades_loading"
         @click.stop="sendGrades">Enviar notas</v-btn>
-      <v-btn size="small" color="primary" @click.stop="navigateTo(`/session/report/${props.session.public_id}`)">
+      <v-btn size="small" color="primary" @click.stop="navigateTo(`/instructor/session/report/${props.session.public_id}`)">
         Relatório
       </v-btn>
     </div>
