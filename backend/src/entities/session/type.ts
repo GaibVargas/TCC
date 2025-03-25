@@ -236,6 +236,8 @@ export const session_report_schema = z.object({
   grades_status: z.nativeEnum(SessionGradesStatus),
   quiz: quiz_session_report,
   players: z.array(player_session_report_schema),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 })
 
 export type SessionReport = z.infer<typeof session_report_schema>
