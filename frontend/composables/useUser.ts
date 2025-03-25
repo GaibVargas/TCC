@@ -1,4 +1,4 @@
-import { UserRoles, type User } from "~/types/user";
+import { UserRoles, type User } from "~/types/user"
 
 export const useUser = defineStore('user', {
   state: (): User => ({ public_id: '', name: '', role: UserRoles.PARTICIPANT }),

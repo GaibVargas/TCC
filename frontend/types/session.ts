@@ -2,8 +2,12 @@ import type {
   PublicId,
   Question,
   QuestionOptionPayload,
+  QuestionType,
+  Quiz,
   QuizPayload,
+  QuizReportView,
 } from "./quiz"
+import type { User } from "./user"
 
 export enum SessionModes {
   INDIVIDUAL = "individual",
@@ -34,7 +38,8 @@ export interface SessionParticipants extends SessionIdentification {
   participants: string[]
 }
 
-export interface SessionParticipantsQuestionAnswered extends SessionIdentification {
+export interface SessionParticipantsQuestionAnswered
+  extends SessionIdentification {
   question_public_id: string
   ready_participants: string[]
 }
@@ -45,7 +50,7 @@ export enum SessionStatus {
   FEEDBACK_QUESTION = "feedback-question",
   FEEDBACK_SESSION = "feedback-session",
   ENDING = "ending",
-  FINISHED = 'finished',
+  FINISHED = "finished",
 }
 
 interface SessionBaseState extends SessionIdentification, SessionParticipants {
@@ -74,16 +79,15 @@ export interface SessionQuestion
   startedAt: number // Date in ms
 }
 
-export interface InstructorSessionShowingQuestionState extends SessionBaseState {
+export interface InstructorSessionShowingQuestionState
+  extends SessionBaseState {
   status: SessionStatus.SHOWING_QUESTION
   question: SessionQuestion
   ready_participants: string[]
 }
 
-interface ParticipantSessionShowingQuestionState extends Omit<
-  InstructorSessionShowingQuestionState,
-  'ready_participants'
-> {
+interface ParticipantSessionShowingQuestionState
+  extends Omit<InstructorSessionShowingQuestionState, "ready_participants"> {
   answered: boolean
 }
 
@@ -108,7 +112,8 @@ export interface ParticipantSessionQuestionFeedback {
   streak_bonus: number
 }
 
-export interface ParticipantSessionFeedbackQuestionState extends SessionBaseState {
+export interface ParticipantSessionFeedbackQuestionState
+  extends SessionBaseState {
   status: SessionStatus.FEEDBACK_QUESTION
   question: SessionQuestion
   feedback: ParticipantSessionQuestionFeedback
@@ -123,7 +128,6 @@ export type Ranking = {
   rank: string
   players: RankingEntry[]
 }[]
-
 
 export interface SessionFeedbackSessionState extends SessionBaseState {
   status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING
@@ -145,9 +149,9 @@ export type ParticipantSessionState =
 export type SessionState = InstructorSessionState | ParticipantSessionState
 
 export enum SessionGradesStatus {
-  NOT_SENDED = 'not-sended',
-  SENDED = 'sended',
-  ERROR = 'error'
+  NOT_SENDED = "not-sended",
+  SENDED = "sended",
+  ERROR = "error",
 }
 export type SessionItem = {
   public_id: string
@@ -158,5 +162,46 @@ export type SessionItem = {
   }
   participants: number
   grades_status: SessionGradesStatus
+  updatedAt: Date
+}
+
+type UserSessionReport = Pick<User, "public_id" | "name">
+type AnswerSessionReport = {
+  value: string
+  player: {
+    user: UserSessionReport
+  }
+  given_answer: string
+  is_correct: boolean
+}
+type QuestionSessionReport = {
+  public_id: string
+  type: QuestionType
+  description: string
+  time_limit: number | null
+  correct_text_answer: string
+  is_deleted: boolean
+  answers: AnswerSessionReport[]
+  correct_answer_percentage: number
+}
+type QuizSessionReport = {
+  public_id: string
+  title: string
+  is_deleted: boolean
+  questions: QuestionSessionReport[]
+}
+type PlayerSessionReport = {
+  grade: number
+  score: number
+  user: UserSessionReport
+}
+export type SessionReport = {
+  public_id: string
+  code: string
+  status: SessionStatus
+  grades_status: SessionGradesStatus
+  quiz: QuizSessionReport
+  players: PlayerSessionReport[]
+  createdAt: Date
   updatedAt: Date
 }

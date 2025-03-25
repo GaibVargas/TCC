@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { TZDate } from '@date-fns/tz';
-import { format } from 'date-fns';
+import { TZDate } from '@date-fns/tz'
+import { format } from 'date-fns'
 import { SessionGradesStatus, type SessionItem } from '~/types/session'
 
 interface Props {

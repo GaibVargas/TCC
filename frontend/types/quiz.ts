@@ -16,7 +16,7 @@ export interface QuestionOption {
 export interface QuestionOptionPayload extends PublicId, QuestionOption {}
 
 export interface QuestionGeneric<OptionT> {
-  id: string
+  id: string | number
   type: QuestionType
   description: string
   time_limit: number | null
@@ -41,6 +41,15 @@ export interface QuizGeneric<QuestionT> {
 export interface Quiz extends QuizGeneric<Question> {}
 export interface QuizUpdatePayload extends QuizGeneric<Omit<Question, "id">> {}
 export interface QuizPayload extends PublicId, QuizGeneric<QuestionPayload> {}
+
+export interface QuizReportView
+  extends PublicId,
+    QuizGeneric<
+      Omit<
+        QuestionGeneric<Omit<QuestionOptionPayload, "id">>,
+        "multi_choice_options" | "true_or_false_options"
+      > & { id: number } & PublicId
+    > {}
 
 export interface QuizResume {
   public_id: string
