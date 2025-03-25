@@ -90,7 +90,7 @@ model Session {
   id Int @id @default(autoincrement())
   public_id String @unique @default(uuid())
 
-  code String
+  code String @unique
   status String
   current_question_public_id String
   grades_status String @default("not-sended")
