@@ -232,6 +232,7 @@ const quiz_session_report = z.object({
 })
 export const session_report_schema = z.object({
   public_id: z.string(),
+  code: z.string(),
   status: z.nativeEnum(SessionStatus),
   grades_status: z.nativeEnum(SessionGradesStatus),
   quiz: quiz_session_report,
