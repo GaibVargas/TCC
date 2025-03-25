@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Question, QuestionOption, Quiz, quiz_schema } from '../quiz/type'
+import { Question, question_type_schema, QuestionOption, Quiz, quiz_schema } from '../quiz/type'
 import { minUserSchema } from '../user/type'
 
 export enum SessionModes {
@@ -19,7 +19,7 @@ export const answer_session_question_schema = z.object({
 
 export type SessionCreatePayload = {
   code: string
-  quiz: Pick<Quiz, "public_id" | "title">
+  quiz: Pick<Quiz, 'public_id' | 'title'>
 }
 
 export interface SessionIdentification {
@@ -35,7 +35,8 @@ export interface SessionParticipants extends SessionIdentification {
   participants: string[]
 }
 
-export interface SessionParticipantsQuestionAnswered extends SessionIdentification {
+export interface SessionParticipantsQuestionAnswered
+  extends SessionIdentification {
   question_public_id: string
   ready_participants: string[]
 }
@@ -64,7 +65,10 @@ interface ParticipantSessionWaitingState extends SessionBaseState {
 
 type SessionQuestionOptions = Pick<QuestionOption, 'public_id' | 'description'>
 export interface SessionQuestion
-  extends Pick<Question, 'id' | 'public_id' | 'description' | 'type' | 'time_limit'> {
+  extends Pick<
+    Question,
+    'id' | 'public_id' | 'description' | 'type' | 'time_limit'
+  > {
   options: SessionQuestionOptions[]
   index: number
   total: number
@@ -77,10 +81,8 @@ interface InstructorSessionShowingQuestionState extends SessionBaseState {
   ready_participants: string[]
 }
 
-interface ParticipantSessionShowingQuestionState extends Omit<
-  InstructorSessionShowingQuestionState,
-  'ready_participants'
-> {
+interface ParticipantSessionShowingQuestionState
+  extends Omit<InstructorSessionShowingQuestionState, 'ready_participants'> {
   answered: boolean
 }
 
@@ -121,7 +123,10 @@ export type RankingType = {
 }[]
 
 interface SessionFeedbackSessionState extends SessionBaseState {
-  status: SessionStatus.FEEDBACK_SESSION | SessionStatus.ENDING | SessionStatus.FINISHED
+  status:
+    | SessionStatus.FEEDBACK_SESSION
+    | SessionStatus.ENDING
+    | SessionStatus.FINISHED
   ranking: RankingType
 }
 
@@ -141,14 +146,16 @@ export const recoveredSessionAnswerSchema = z.object({
   value: z.string(),
   player: z.object({
     user: z.object({
-      public_id: z.string()
-    })
+      public_id: z.string(),
+    }),
   }),
   question: z.object({
-    public_id: z.string()
-  })
+    public_id: z.string(),
+  }),
 })
-export type RecoveredSessionAnswer = z.infer<typeof recoveredSessionAnswerSchema>
+export type RecoveredSessionAnswer = z.infer<
+  typeof recoveredSessionAnswerSchema
+>
 
 export const recoveredSessionSchema = z.object({
   id: z.number(),
@@ -157,21 +164,23 @@ export const recoveredSessionSchema = z.object({
   current_question_public_id: z.string(),
   quiz: quiz_schema,
   instructor: minUserSchema,
-  players: z.array(z.object({
-    id: z.number(),
-    user: minUserSchema,
-  })),
-  answers: z.array(recoveredSessionAnswerSchema)
+  players: z.array(
+    z.object({
+      id: z.number(),
+      user: minUserSchema,
+    }),
+  ),
+  answers: z.array(recoveredSessionAnswerSchema),
 })
 export type RecoveredSession = z.infer<typeof recoveredSessionSchema>
 
 export enum SessionGradesStatus {
   NOT_SENDED = 'not-sended',
   SENDED = 'sended',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
-export const sessionItemSchema = z.object({
+export const session_item_schema = z.object({
   public_id: z.string(),
   code: z.string(),
   quiz: z.object({
@@ -182,10 +191,51 @@ export const sessionItemSchema = z.object({
   grades_status: z.nativeEnum(SessionGradesStatus),
   updatedAt: z.date(),
 })
-export type SessionItem = z.infer<typeof sessionItemSchema>
+export type SessionItem = z.infer<typeof session_item_schema>
 
 export type PlayerGradeAndScoreItem = {
   id: number
   grade: number
   score: number
 }
+
+const user_session_report_schema = minUserSchema.pick({ public_id: true, name: true })
+const player_session_report_schema = z.object({
+  grade: z.number(),
+  score: z.number(),
+  user: user_session_report_schema,
+})
+const question_answer_session_report_schema = z.object({
+  value: z.string(),
+  player: z.object({
+    user: user_session_report_schema
+  }),
+  given_answer: z.string(),
+  is_correct: z.boolean(),
+})
+const question_session_report_Schema = z.object({
+  public_id: z.string(),
+  type: question_type_schema,
+  description: z.string(),
+  time_limit: z.number().nullable(),
+  correct_text_answer: z.string(),
+  is_deleted: z.boolean(),
+  answers: z.array(question_answer_session_report_schema),
+  correct_answer_percentage: z.number(),
+})
+const quiz_session_report = z.object({
+  public_id: z.string(),
+  author_id: z.number(),
+  title: z.string(),
+  is_deleted: z.boolean(),
+  questions: z.array(question_session_report_Schema),
+})
+export const session_report_item_schema = z.object({
+  public_id: z.string(),
+  status: z.nativeEnum(SessionStatus),
+  grades_status: z.nativeEnum(SessionGradesStatus),
+  quiz: quiz_session_report,
+  players: z.array(player_session_report_schema),
+})
+
+export type SessionReportItem = z.infer<typeof session_report_item_schema>

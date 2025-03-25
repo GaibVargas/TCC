@@ -24,4 +24,5 @@ function instructorSessionRoutes(fastify: FastifyInstance, _options: unknown): v
   fastify.post('/next-step/:code', sessionControllers.sessionNextStep)
   fastify.post('/early-end/:code', sessionControllers.sessionEarlyEnd)
   fastify.post('/send-grades/:code', sessionControllers.sessionSendGrades)
+  fastify.get('/report/view/:public_id', sessionControllers.sessionReportView)
 }

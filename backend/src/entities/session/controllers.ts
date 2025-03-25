@@ -10,11 +10,13 @@ import {
   SessionCreatePayload,
   SessionGradesStatus,
   SessionItem,
+  SessionReportItem,
 } from './type'
 import HttpRequestError from '../../utils/error'
 import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
 import sessionServices from './services'
 import { MoodleLTIServices } from '../../lti/moodle/services'
+import { PublicIdParams } from '../../common/query'
 
 export async function createSession(
   req: FastifyRequest,
@@ -180,6 +182,14 @@ export async function sessionSendGrades(
   }
 }
 
+export async function sessionReportView(
+  req: FastifyRequest<{ Params: PublicIdParams }>,
+  _reply: FastifyReply,
+): Promise<SessionReportItem> {
+  userVerify(req.user)
+  return await sessionServices.sessionReportView(req.user.id, req.params.public_id)
+}
+
 const sessionControllers = {
   createSession,
   getSessionState,
@@ -192,6 +202,7 @@ const sessionControllers = {
   ongoingSessionsByAuthor,
   sessionEarlyEnd,
   sessionSendGrades,
+  sessionReportView,
 }
 
 export default sessionControllers

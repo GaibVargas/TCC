@@ -3,6 +3,7 @@ import quizServices from './services'
 import { create_quiz_schema, Quiz, QuizResume, update_quiz_schema } from './type'
 import { userVerify } from '../../auth/services'
 import { Paginated, pagination_query_schema, PaginationQuery } from '../../common/pagination'
+import { PublicIdParams } from '../../common/query'
 
 export async function createQuiz(
   req: FastifyRequest,
@@ -13,10 +14,6 @@ export async function createQuiz(
     req.user,
     create_quiz_schema.parse(req.body),
   )
-}
-
-interface PublicIdParams {
-  public_id: string
 }
 
 export async function getQuiz(

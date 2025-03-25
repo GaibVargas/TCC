@@ -2,7 +2,7 @@ import { Paginated, PaginationQuery } from '../../common/pagination'
 import HttpRequestError from '../../utils/error'
 import { MinUser, SessionPlayer } from '../user/type'
 import sessionModel from './model'
-import { SessionGradesStatus, SessionItem } from './type'
+import { SessionGradesStatus, SessionItem, SessionReportItem } from './type'
 
 export async function getFinishedSessionsByAuthor(
   user: MinUser,
@@ -54,11 +54,30 @@ export async function setSessionGradeStatus(
   await sessionModel.updateSessionGradeStatusById(session.id, status)
 }
 
+export async function sessionReportView(
+  user_id: number,
+  id: string,
+): Promise<SessionReportItem> {
+  const session_report = await sessionModel.findSessionReportByPubliId(id)
+  if (!session_report)
+    throw new HttpRequestError({
+      message: 'Session not found',
+      status_code: 400,
+    })
+  if (session_report.quiz.author_id !== user_id)
+    throw new HttpRequestError({
+      message: 'Unauthorized',
+      status_code: 401,
+    })
+  return session_report
+}
+
 const sessionServices = {
   getFinishedSessionsByAuthor,
   getOngoingSessionsByAuthor,
   getPlayersResult,
   setSessionGradeStatus,
+  sessionReportView,
 }
 
 export default sessionServices
