@@ -13,25 +13,29 @@ const headers = [
 </script>
 
 <template>
-  <v-data-table :headers="headers" :items="props.session.players" hide-default-footer
-    hover item-value="public_id">
-    <template v-slot:headers="{ columns }">
-      <tr class="table-header">
-        <template v-for="column in columns" :key="column.key">
-          <th>
-            <span class="font-weight-bold">{{ column.title }}</span>
-          </th>
+  <v-card>
+    <v-sheet rounded="sm" border>
+      <v-data-table :headers="headers" :items="props.session.players" hide-default-footer
+        hover item-value="public_id">
+        <template v-slot:headers="{ columns }">
+          <tr class="table-header">
+            <template v-for="column in columns" :key="column.key">
+              <th>
+                <span class="font-weight-bold">{{ column.title }}</span>
+              </th>
+            </template>
+          </tr>
         </template>
-      </tr>
-    </template>
-    <template v-slot:item="{ item }">
-      <tr>
-        <td>{{ item.user.name }}</td>
-        <td>{{ (item.grade * 10).toFixed(2).replace('.', ',') }}</td>
-        <td>{{ item.score }} pts</td>
-      </tr>
-    </template>
-  </v-data-table>
+        <template v-slot:item="{ item }">
+          <tr>
+            <td>{{ item.user.name }}</td>
+            <td>{{ (item.grade * 10).toFixed(2).replace('.', ',') }}</td>
+            <td>{{ item.score }} pts</td>
+          </tr>
+        </template>
+      </v-data-table>
+    </v-sheet>
+  </v-card>
 </template>
 
 <style lang="sass" scoped>
