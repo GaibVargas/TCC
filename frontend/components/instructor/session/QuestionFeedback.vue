@@ -22,7 +22,6 @@ function getOptionNAnswers(option_public_id: string) {
       <v-icon size="small" class="mr-2">mdi-account</v-icon>
       <span class="text-body-1">{{ props.participants.length }}</span>
     </div>
-    <p v-if="props.question.time_limit" class="mt-8">{{ props.question.time_limit }}</p>
     <p class="my-auto text-center">{{ props.question.description }}</p>
     <div v-if="props.question.type === QuestionType.MULTI_CHOICE || props.question.type === QuestionType.TRUE_OR_FALSE"
       class="w-100 d-flex ga-2 flex-wrap justify-space-around" :style="{ minHeight: '40vh' }">

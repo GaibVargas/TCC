@@ -3,6 +3,7 @@ import { QuestionType } from '~/types/quiz'
 import type { InstructorSessionShowingQuestionState } from '~/types/session'
 
 const props = defineProps<InstructorSessionShowingQuestionState>()
+const { remaining_time } = useCountdownTimer(props.question.startedAt, props.question.time_limit)
 </script>
 
 <template>
@@ -13,7 +14,7 @@ const props = defineProps<InstructorSessionShowingQuestionState>()
       <v-icon size="small" class="mr-2">mdi-account</v-icon>
       <span class="text-caption">{{ props.ready_participants.length }} / {{ props.participants.length }}</span>
     </div>
-    <p v-if="props.question.time_limit" class="mt-8">{{ props.question.time_limit }}</p>
+    <p v-if="props.question.time_limit" class="mt-8">{{ remaining_time }}</p>
     <p class="my-auto text-center">{{ props.question.description }}</p>
     <div v-if="props.question.type === QuestionType.MULTI_CHOICE || props.question.type === QuestionType.TRUE_OR_FALSE"
       class="w-100 d-flex ga-2 flex-wrap">

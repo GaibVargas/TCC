@@ -41,6 +41,8 @@ async function sendAnswer() {
     sended.value = false
   }
 }
+
+const { remaining_time } = useCountdownTimer(props.question.startedAt, props.question.time_limit)
 </script>
 
 <template>
@@ -53,7 +55,7 @@ async function sendAnswer() {
   <v-container fluid class="ma-0 pa-0 flex-fill fill-height flex-column justify-center position-relative">
     <span class="position-absolute top-0 right-0 text-caption">{{ props.question.index }} / {{
       props.question.total }}</span>
-    <p class="position-absolute top-0" v-if="props.question.time_limit">{{ props.question.time_limit }}</p>
+    <p class="position-absolute top-0" v-if="props.question.time_limit">{{ remaining_time }}</p>
     <p class="my-auto text-center">{{ props.question.description }}</p>
     <div v-if="props.question.type === QuestionType.MULTI_CHOICE || props.question.type === QuestionType.TRUE_OR_FALSE"
       class="w-100 d-flex ga-2 flex-wrap">

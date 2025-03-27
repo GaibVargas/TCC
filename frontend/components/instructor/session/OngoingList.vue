@@ -4,6 +4,16 @@ import type { SessionItem } from '~/types/session'
 const { data, status } = await useApiUseFetch<SessionItem[]>('/session/ongoing', {
   lazy: true,
 })
+
+const emit = defineEmits<{
+  (e: 'endSession', public_id: string): void
+}>()
+function filterEndedSession(public_id: string) {
+  if (!data.value) return
+  data.value = data.value.filter(session => session.public_id !== public_id)
+  emit('endSession', public_id)
+}
+
 </script>
 
 <template>
@@ -17,7 +27,7 @@ const { data, status } = await useApiUseFetch<SessionItem[]>('/session/ongoing',
   <v-container v-else-if="data" fluid class="ma-0 pa-0">
     <ul class="flex-fill list mb-8">
       <li v-for="session in data" :key="session.public_id" class="mb-2">
-        <InstructorSessionListItem :key="session.public_id" :session="session" :is_active="true"/>
+        <InstructorSessionListItem :key="session.public_id" :session="session" :is_active="true" @end-session="filterEndedSession"/>
       </li>
     </ul>
   </v-container>

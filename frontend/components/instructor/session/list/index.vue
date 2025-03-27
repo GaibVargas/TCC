@@ -14,6 +14,9 @@ const total_items = computed(() => {
 })
 const n_pages = computed(() => Math.ceil(total_items.value / page_size))
 
+const refresh_fetch = ref<(() => Promise<void>) | null>(null) // defineExpose não pode vir após async/await mesmo sendo um lazy fetch
+defineExpose({ refresh_fetch })
+
 const { data, status, refresh } = await useApiUseFetch<Paginated<SessionItem[]>>('/session/finished', {
   lazy: true,
   query: {
@@ -21,6 +24,7 @@ const { data, status, refresh } = await useApiUseFetch<Paginated<SessionItem[]>>
     page_size,
   }
 })
+refresh_fetch.value = refresh
 
 const is_pagination_loading = ref(false)
 

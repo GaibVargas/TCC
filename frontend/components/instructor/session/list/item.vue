@@ -41,6 +41,9 @@ async function sendGrades() {
   }
 }
 
+const emit = defineEmits<{
+  (e: 'endSession', public_id: string): void
+}>()
 const is_loading_end_session = ref(false)
 async function endSession() {
   const confirmed = await useNuxtApp().$confirm({
@@ -53,9 +56,10 @@ async function endSession() {
   const toast = useNuxtApp().$toast
   try {
     is_loading_end_session.value = true
-    await useApiFetch(`/session/early-end/${props.session.public_id}`, {
+    await useApiFetch(`/session/early-end/${props.session.code}`, {
       method: 'POST'
     })
+    emit('endSession', props.session.public_id)
     toast.success('Sessão encerrada!')
   } catch (error) {
     console.error('Error early ending session', error)
