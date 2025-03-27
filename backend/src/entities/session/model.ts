@@ -353,6 +353,7 @@ export async function findSessionReportByPubliId(id: string): Promise<SessionRep
                 },
               },
             },
+            orderBy: { id: 'asc' },
           },
         },
       },

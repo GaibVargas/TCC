@@ -30,6 +30,7 @@ export class Session {
   private status: SessionStatus
   private quiz_manager: QuizManager
   private ranking: Ranking
+  private question_timeout_id: NodeJS.Timeout | null
 
   private sockets: {
     instructor: CustomSocket | null
@@ -48,6 +49,7 @@ export class Session {
     this.ranking = new Ranking()
     this.sockets = { instructor: null, participants: new Map() }
     this.db_id = 0
+    this.question_timeout_id = null
   }
 
   static async createSession(
@@ -83,7 +85,7 @@ export class Session {
     }
     return recovered_sessions
   }
-  
+
   recoverAdditionalData(
     code: string,
     status: SessionStatus,
@@ -163,18 +165,36 @@ export class Session {
   }
 
   async start(): Promise<void> {
-    this.status = SessionStatus.SHOWING_QUESTION
     await this.saveSessionUpdate({ status: SessionStatus.SHOWING_QUESTION })
+    this.status = SessionStatus.SHOWING_QUESTION
+    this.startCurrentQuestion()
     this.sendStateUpdates()
   }
 
+  private startCurrentQuestion(): void {
+    const question = this.quiz_manager.startCurrentQuestion()
+    if (!question.time_limit) return
+    this.question_timeout_id = setTimeout(
+      () => {
+        this.nextStep.bind(this)()
+          .then()
+          .catch((e) => console.error('Error on ending question automatically', e))
+      },
+      question.time_limit * 1000 + 500, // Espera meio segundo a mais
+    )
+  }
+
   async nextStep(): Promise<boolean> {
+    if (this.question_timeout_id) {
+      clearTimeout(this.question_timeout_id)
+      this.question_timeout_id = null
+    }
     let finished_session = false
     switch (this.status) {
       case SessionStatus.WAITING_START:
         await this.saveSessionUpdate({ status: SessionStatus.SHOWING_QUESTION })
         this.status = SessionStatus.SHOWING_QUESTION
-        this.quiz_manager.startCurrentQuestion()
+        this.startCurrentQuestion()
         break
       case SessionStatus.SHOWING_QUESTION:
         await this.saveQuestionAnswers(
@@ -201,7 +221,7 @@ export class Session {
             current_question_public_id: next_question.public_id,
           })
           this.status = SessionStatus.SHOWING_QUESTION
-          this.quiz_manager.startCurrentQuestion()
+          this.startCurrentQuestion()
         }
         break
       case SessionStatus.ENDING:
@@ -256,9 +276,15 @@ export class Session {
     const score = this.ranking.getRanking()
     const users_grade_score = new Map<number, PlayerGradeAndScoreItem>()
     for (const user_grade of grades) {
-      const player_id = this.participants.get(user_grade.user_public_id)?.player_id
+      const player_id = this.participants.get(
+        user_grade.user_public_id,
+      )?.player_id
       if (!player_id) continue
-      users_grade_score.set(player_id, { id: player_id, grade: user_grade.grade, score: 0 })
+      users_grade_score.set(player_id, {
+        id: player_id,
+        grade: user_grade.grade,
+        score: 0,
+      })
     }
     for (const score_entry of score) {
       for (const user_score of score_entry.entries) {
@@ -266,7 +292,11 @@ export class Session {
         if (!player_id) continue
         const user_grade_score = users_grade_score.get(player_id)
         if (!user_grade_score) {
-          users_grade_score.set(player_id, { id: player_id, grade: 0, score: user_score.score })
+          users_grade_score.set(player_id, {
+            id: player_id,
+            grade: 0,
+            score: user_score.score,
+          })
         } else {
           user_grade_score.score = user_score.score
         }

@@ -70,8 +70,12 @@ export class QuizManager {
 
   startCurrentQuestion(): SessionQuestion {
     const question = this.getCurrentQuestion()
-    if (this.questions_start_time.has(question.public_id)) {
-      return question
+    const setup_start_time = this.questions_start_time.get(question.public_id)
+    if (setup_start_time !== undefined) {
+      return {
+        ...question,
+        startedAt: setup_start_time,
+      }
     }
     const start_time = Date.now() // UTC
     this.questions_start_time.set(question.public_id, start_time)
